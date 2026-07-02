@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PasswordInput } from "@/components/common/password-input";
 import { formatCPF } from "@/lib/utils/cpf";
+import { formatRG } from "@/lib/utils/rg";
+import { formatPhoneBR } from "@/lib/utils/phone";
 import { formatCEP, lookupCep } from "@/lib/utils/cep";
 
 export function CadastroForm() {
@@ -16,6 +19,8 @@ export function CadastroForm() {
     undefined,
   );
   const [cpf, setCpf] = useState("");
+  const [rg, setRg] = useState("");
+  const [celular, setCelular] = useState("");
   const [cep, setCep] = useState("");
   const [endereco, setEndereco] = useState({
     logradouro: "",
@@ -66,18 +71,35 @@ export function CadastroForm() {
               required
             />
           </div>
-          <Field label="RG" name="rg" required />
+          <div className="space-y-2">
+            <Label htmlFor="rg">RG</Label>
+            <Input
+              id="rg"
+              name="rg"
+              inputMode="text"
+              value={rg}
+              onChange={(e) => setRg(formatRG(e.target.value))}
+              placeholder="00.000.000-0"
+              required
+            />
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="E-mail" name="email" type="email" autoComplete="email" required />
-          <Field
-            label="Celular"
-            name="celular"
-            type="tel"
-            autoComplete="tel"
-            placeholder="(11) 90000-0000"
-            required
-          />
+          <div className="space-y-2">
+            <Label htmlFor="celular">Celular</Label>
+            <Input
+              id="celular"
+              name="celular"
+              type="tel"
+              inputMode="numeric"
+              autoComplete="tel"
+              value={celular}
+              onChange={(e) => setCelular(formatPhoneBR(e.target.value))}
+              placeholder="(11) 90000-0000"
+              required
+            />
+          </div>
         </div>
       </section>
 
@@ -85,23 +107,21 @@ export function CadastroForm() {
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
           Endereço
         </h2>
-        <div className="grid grid-cols-[1fr_auto] items-end gap-3">
-          <div className="space-y-2">
-            <Label htmlFor="cep">CEP</Label>
-            <Input
-              id="cep"
-              name="cep"
-              inputMode="numeric"
-              value={cep}
-              onChange={(e) => setCep(formatCEP(e.target.value))}
-              onBlur={handleCepBlur}
-              placeholder="00000-000"
-              required
-            />
-          </div>
-          <span className="pb-2.5 text-xs text-muted-foreground">
-            {buscandoCep ? "Buscando…" : "Preenche sozinho"}
-          </span>
+        <div className="space-y-2">
+          <Label htmlFor="cep">CEP</Label>
+          <Input
+            id="cep"
+            name="cep"
+            inputMode="numeric"
+            value={cep}
+            onChange={(e) => setCep(formatCEP(e.target.value))}
+            onBlur={handleCepBlur}
+            placeholder="00000-000"
+            required
+          />
+          {buscandoCep && (
+            <p className="text-xs text-muted-foreground">Buscando endereço…</p>
+          )}
         </div>
         <div className="grid grid-cols-[1fr_100px] gap-3">
           <Field
@@ -151,14 +171,24 @@ export function CadastroForm() {
           required
         />
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Senha" name="senha" type="password" autoComplete="new-password" required />
-          <Field
-            label="Confirmar senha"
-            name="confirmar_senha"
-            type="password"
-            autoComplete="new-password"
-            required
-          />
+          <div className="space-y-2">
+            <Label htmlFor="senha">Senha</Label>
+            <PasswordInput
+              id="senha"
+              name="senha"
+              autoComplete="new-password"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmar_senha">Confirmar senha</Label>
+            <PasswordInput
+              id="confirmar_senha"
+              name="confirmar_senha"
+              autoComplete="new-password"
+              required
+            />
+          </div>
         </div>
       </section>
 

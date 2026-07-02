@@ -6,6 +6,7 @@ import { cadastroSchema, loginSchema } from "@/lib/validations/auth";
 import { toE164 } from "@/lib/utils/phone";
 import { onlyDigits } from "@/lib/utils/cpf";
 import { onlyDigitsCep } from "@/lib/utils/cep";
+import { onlyRg } from "@/lib/utils/rg";
 
 export type ActionState = { error?: string } | undefined;
 
@@ -54,14 +55,14 @@ export async function cadastrar(
   const supabase = await createClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: d.email,
     password: d.senha,
     options: {
       emailRedirectTo: `${siteUrl}/auth/callback?next=/app`,
       data: {
         nome_completo: d.nome_completo,
-        rg: d.rg,
+        rg: onlyRg(d.rg),
         cpf: onlyDigits(d.cpf),
         celular,
         cep: onlyDigitsCep(d.cep),
@@ -86,6 +87,10 @@ export async function cadastrar(
     return { error: "Não foi possível concluir o cadastro. Tente novamente." };
   }
 
+  // Se a confirmação de e-mail estiver desativada, o signup já retorna sessão ativa.
+  if (data.session) {
+    redirect("/app");
+  }
   redirect(`/verificar-email?email=${encodeURIComponent(d.email)}`);
 }
 

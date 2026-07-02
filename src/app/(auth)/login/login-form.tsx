@@ -6,6 +6,7 @@ import { login, type ActionState } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/common/password-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { GoogleButton } from "@/components/auth/google-button";
 import { Separator } from "@/components/ui/separator";
@@ -48,10 +49,9 @@ export function LoginForm({ next }: { next?: string }) {
             Esqueci a senha
           </Link>
         </div>
-        <Input
+        <PasswordInput
           id="senha"
           name="senha"
-          type="password"
           autoComplete="current-password"
           required
         />

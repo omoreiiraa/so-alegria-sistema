@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { isValidCPF } from "@/lib/utils/cpf";
 import { isValidPhone } from "@/lib/utils/phone";
+import { isValidRG } from "@/lib/utils/rg";
 
 export const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -11,7 +12,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export const cadastroSchema = z
   .object({
     nome_completo: z.string().min(3, "Informe seu nome completo"),
-    rg: z.string().min(5, "RG inválido"),
+    rg: z.string().refine(isValidRG, "RG inválido (verifique o dígito)"),
     cpf: z.string().refine(isValidCPF, "CPF inválido"),
     email: z.string().email("E-mail inválido"),
     celular: z.string().refine((v) => isValidPhone(v), "Celular inválido (com DDD)"),
