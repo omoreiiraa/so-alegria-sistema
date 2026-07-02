@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Só Alegria — Sistema de Gestão de Recreação
 
-## Getting Started
+Plataforma web da **Só Alegria — Recreação e Discoteca** para gerir a operação de festas
+infantis: escala, confirmação de festas, disponibilidade, pagamentos, frota, buffets parceiros
+e estoque.
 
-First, run the development server:
+- **Colaborador** (`/app`) — freelancer, mobile-first (PWA): escala, confirmar/recusar, disponibilidade, pagamentos.
+- **Admin** (`/admin`) — escritório, desktop-first: festas (kanban/calendário), colaboradores, pagamentos, veículos, parceiros, estoque.
+
+## Stack
+
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui (Base UI) ·
+Supabase (Postgres + Auth + Storage) · Vercel.
+
+## Começando
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local   # preencha as chaves (ver abaixo)
+npm install
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Variáveis de ambiente
+| Variável | Descrição |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave publishable (client) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Segredo — só no servidor (Server Actions/Edge) |
+| `RESEND_API_KEY` / `RESEND_FROM` | E-mails transacionais |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Rate limit (opcional em dev) |
+| `NEXT_PUBLIC_SITE_URL` | URL pública (para redirects de auth) |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev        # desenvolvimento
+npm run build      # build de produção
+npm run lint       # ESLint
+npm run typecheck  # tsc --noEmit
+```
 
-## Learn More
+## Estrutura & documentação
 
-To learn more about Next.js, take a look at the following resources:
+A documentação normativa vive em [`docs/`](docs/) e o guia de desenvolvimento em
+[`CLAUDE.md`](CLAUDE.md). Comece por:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [docs/01-regras-de-negocio.md](docs/01-regras-de-negocio.md) — cachê, pagamentos, estoque
+- [docs/03-modelo-de-dados.md](docs/03-modelo-de-dados.md) — schema e funções
+- [docs/04-seguranca-rls-lgpd.md](docs/04-seguranca-rls-lgpd.md) — RLS e LGPD
+- [docs/06-roadmap-fases.md](docs/06-roadmap-fases.md) — o que está pronto e o que falta
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Migrations SQL versionadas em [`supabase/migrations/`](supabase/migrations/).
 
-## Deploy on Vercel
+## Banco de dados
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+O schema é aplicado via migrations. A **lógica de cachê e pagamentos roda no Postgres**
+(funções `calc_cache`, `close_payment_week`, etc.) e **RLS está ativa em todas as tabelas**.
+Nunca calcule cachê no client.

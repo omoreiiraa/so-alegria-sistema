@@ -59,4 +59,20 @@ Autoria é do dono do repo (config git local).
 
 ---
 
+### ADR-0007 — shadcn/ui com estilo base-nova (Base UI, não Radix)
+**Data:** 2026-07-02
+**Contexto:** `shadcn init` (CLI v4) configurou o projeto com o estilo **base-nova**, que usa
+**Base UI** (`@base-ui/react`) como biblioteca de primitivos, não Radix.
+**Decisão:** Manter base-nova.
+**Consequência (importante p/ devs):** a composição usa **`render={<Comp />}`**, não `asChild`.
+Ex.: `<Button render={<Link href="/x" />}>Label</Button>`. Props seguem a API do Base UI
+(ex.: Tooltip usa `delay`, não `delayDuration`). Ao adicionar componentes, seguir o padrão Base UI.
+
+### ADR-0008 — Stack final: Next.js 16 + React 19 + Tailwind v4
+**Data:** 2026-07-02
+**Contexto:** `create-next-app` instalou Next 16 (Turbopack) + React 19 + Tailwind v4.
+**Decisão:** Adotar. PRD pedia "Next 14+"; 16 atende e traz Turbopack por padrão.
+**Consequência:** RSC/Server Actions modernos; `searchParams`/`params` são Promises (await).
+Tokens de tema em CSS (`@theme inline`) — sem `tailwind.config`.
+
 <!-- Novas decisões abaixo -->

@@ -5,17 +5,21 @@
 ## Fase 0 — Fundação
 - [x] Documentação (CLAUDE.md + docs/)
 - [x] Projeto Supabase criado (`so-alegria`, sa-east-1)
-- [ ] Scaffold Next.js + TS + Tailwind + shadcn/ui
-- [ ] Tema/tokens da marca (globals.css, fontes)
-- [ ] Clients Supabase (browser/server/admin) + `.env`
-- [ ] Schema completo: enums, tabelas, generated columns
-- [ ] RLS em todas as tabelas + policies
-- [ ] Funções: `calc_cache`, `confirm/refuse/cancel`, `close_payment_week`, `set_*`, `is_admin`, triggers
-- [ ] Seed (party_types + dados de teste dev)
-- [ ] Auth: e-mail/senha, Google, OTP (Resend) + custom claim `role`
-- [ ] Middleware: guarda de rotas + rate limit (Upstash)
+- [x] Scaffold Next.js 16 + TS + Tailwind v4 + shadcn/ui (base-nova / Base UI)
+- [x] Tema/tokens da marca (globals.css, fontes Baloo 2 / Figtree / JetBrains Mono)
+- [x] Clients Supabase (browser/server/admin) + `.env`
+- [x] Schema completo: enums, tabelas, generated columns
+- [x] RLS em todas as tabelas + policies
+- [x] Funções: `calc_cache`, `confirm/refuse/cancel`, `close_payment_week`, `set_*`, `is_admin`, triggers
+- [x] Hardening de funções (search_path + revoke execute) — advisors
+- [x] Seed (party_types) + bucket de estoque
+- [x] Tipos TS gerados do schema
+- [x] Auth: e-mail/senha + Google + custom claim `role` (guarda por layout)
+- [x] Middleware: renovação de sessão + guarda de rotas /app e /admin
+- [ ] Rate limit (Upstash) no middleware — pendente (chaves)
+- [ ] OTP de e-mail via Resend (config SMTP no Supabase) — pendente (chaves)
+- [x] Cascas de UI: landing, auth (login/cadastro/verificar/esqueci), shell colaborador (bottom tabs), shell admin (sidebar) + dashboard
 - [ ] Repositório GitHub privado + deploy Vercel
-- [ ] Tipos TS gerados do schema
 
 ## Fase 1 — Colaborador core
 - [ ] Cadastro público (Nome, RG, CPF, e-mail, celular E.164, endereço via CEP, PIX, senha) + Zod
