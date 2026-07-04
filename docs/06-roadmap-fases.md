@@ -40,12 +40,12 @@
 - [ ] Notificações painel (sino/badge) + e-mail (Resend) para recusa/cancelamento/novo cadastro
 
 ## Fase 3 — Pagamentos
-- [ ] `calc_cache` + snapshot na confirmação (testes dos casos de aceite)
-- [ ] Fechamento semanal (`close_payment_week`)
-- [ ] Colaborador: "A receber" + "Recebidos" (detalhe por festa)
-- [ ] Admin: visão por semana, tabela por colaborador (nº festas, total, PIX copiável)
-- [ ] Marcar pago (individual/lote) + registro data/hora
-- [ ] Export CSV da semana
+- [x] `calc_cache` + snapshot na confirmação (valores verificados no banco)
+- [x] Fechamento semanal (`close_payment_week`) com navegação por semana
+- [x] Colaborador: "A receber" + "Recebidos" (detalhe por festa, abas)
+- [x] Admin: visão por semana, tabela por colaborador (nº festas, total, PIX copiável)
+- [x] Marcar pago (individual/lote) + registro data/hora
+- [x] Export CSV da semana
 
 ## Fase 4 — Operação
 - [ ] Veículos: CRUD, rodízio (alerta), vínculo com festa, status automático

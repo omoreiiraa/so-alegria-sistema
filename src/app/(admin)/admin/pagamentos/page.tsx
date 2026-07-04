@@ -1,23 +1,117 @@
 import type { Metadata } from "next";
-import { Wallet } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
-import { EmptyState } from "@/components/common/empty-state";
+import { PagamentosAdmin, type PagamentoRow } from "@/components/admin/pagamentos-admin";
+import { mondayOfWeek, addDaysISO, todayISO } from "@/lib/utils/date";
 
 export const metadata: Metadata = { title: "Pagamentos" };
 
-export default async function AdminPagamentosPage() {
+const ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+export default async function AdminPagamentosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ semana?: string }>;
+}) {
   await requireAdmin();
+  const { semana } = await searchParams;
+  const semanaInicio = mondayOfWeek(semana && ISO.test(semana) ? semana : todayISO());
+  const semanaFim = addDaysISO(semanaInicio, 6);
+
+  const supabase = await createClient();
+
+  const { data: week } = await supabase
+    .from("payment_weeks")
+    .select("id")
+    .eq("semana_inicio", semanaInicio)
+    .maybeSingle();
+
+  let payments: {
+    id: string;
+    valor_total: number;
+    qtd_festas: number;
+    status: "aberto" | "pago";
+    pago_em: string | null;
+    user_id: string;
+    profiles: { nome_completo: string | null; nome_tio: string | null; chave_pix: string | null } | null;
+  }[] = [];
+
+  if (week) {
+    const { data } = await supabase
+      .from("payments")
+      .select(
+        "id, valor_total, qtd_festas, status, pago_em, user_id, profiles ( nome_completo, nome_tio, chave_pix )",
+      )
+      .eq("payment_week_id", week.id);
+    payments = (data ?? []) as unknown as typeof payments;
+  }
+
+  let rows: PagamentoRow[];
+
+  if (payments.length > 0) {
+    rows = payments.map((p) => ({
+      paymentId: p.id,
+      userId: p.user_id,
+      nome: p.profiles?.nome_completo ?? "Colaborador",
+      nomeTio: p.profiles?.nome_tio ?? null,
+      chavePix: p.profiles?.chave_pix ?? null,
+      qtd: p.qtd_festas,
+      valor: Number(p.valor_total),
+      status: p.status,
+      pagoEm: p.pago_em,
+    }));
+  } else {
+    // Prévia: agrega assignments confirmados de festas realizadas na semana
+    const { data: elig } = await supabase
+      .from("party_assignments")
+      .select(
+        "user_id, cache_final, profiles ( nome_completo, nome_tio, chave_pix ), parties!inner ( data, status )",
+      )
+      .eq("status", "confirmada")
+      .eq("parties.status", "realizada")
+      .gte("parties.data", semanaInicio)
+      .lte("parties.data", semanaFim);
+
+    const grp = new Map<string, PagamentoRow>();
+    for (const e of (elig ?? []) as unknown as {
+      user_id: string;
+      cache_final: number | null;
+      profiles: { nome_completo: string | null; nome_tio: string | null; chave_pix: string | null } | null;
+    }[]) {
+      const cur = grp.get(e.user_id) ?? {
+        paymentId: null,
+        userId: e.user_id,
+        nome: e.profiles?.nome_completo ?? "Colaborador",
+        nomeTio: e.profiles?.nome_tio ?? null,
+        chavePix: e.profiles?.chave_pix ?? null,
+        qtd: 0,
+        valor: 0,
+        status: "previa" as const,
+        pagoEm: null,
+      };
+      cur.qtd += 1;
+      cur.valor += Number(e.cache_final ?? 0);
+      grp.set(e.user_id, cur);
+    }
+    rows = [...grp.values()];
+  }
+
+  rows.sort((a, b) => a.nome.localeCompare(b.nome));
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Pagamentos"
-        description="Fechamento semanal (seg–dom) e marcação de pagos."
+        description="Pagamento toda segunda, referente a seg–dom da semana anterior."
       />
-      <EmptyState
-        icon={<Wallet className="size-6" />}
-        title="Fechamento de pagamentos em breve"
-        description="Selecione a semana, veja o total por colaborador (com PIX), marque como pago e exporte CSV. Ver Fase 3 no roadmap."
+      <PagamentosAdmin
+        semanaInicio={semanaInicio}
+        semanaFim={semanaFim}
+        prevSemana={addDaysISO(semanaInicio, -7)}
+        nextSemana={addDaysISO(semanaInicio, 7)}
+        fechada={!!week}
+        rows={rows}
       />
     </div>
   );

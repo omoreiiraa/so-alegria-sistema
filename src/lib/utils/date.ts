@@ -75,6 +75,18 @@ export function weekday(iso: string): number {
   return fromISODate(iso.slice(0, 10)).getDay();
 }
 
+/** Data de hoje em America/Sao_Paulo, no formato 'YYYY-MM-DD'. */
+export function todayISO(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());
+}
+
+/** Soma (ou subtrai) dias a uma data 'YYYY-MM-DD'. */
+export function addDaysISO(iso: string, n: number): string {
+  const d = fromISODate(iso.slice(0, 10));
+  d.setDate(d.getDate() + n);
+  return toISODateLocal(d);
+}
+
 export const DIAS_SEMANA = [
   "Domingo",
   "Segunda",
