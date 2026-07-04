@@ -20,6 +20,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { FestaStatusControl } from "@/components/admin/festa-status-control";
 import { EscalarPanel } from "@/components/admin/escalar-panel";
 import { RemoverEscalado } from "@/components/admin/remover-escalado";
+import { MateriaisFesta, type Material } from "@/components/admin/materiais-festa";
 import { formatDateLong, formatTime } from "@/lib/utils/date";
 import { formatBRL } from "@/lib/utils/money";
 import {
@@ -123,30 +124,59 @@ export default async function FestaDetailPage({
   if (!festaData) notFound();
   const festa = festaData as unknown as Festa;
 
-  const [{ data: aData }, { data: elegiveis }, { data: avail }, { data: confl }] =
-    await Promise.all([
-      supabase
-        .from("party_assignments")
-        .select(
-          `id, status, presence_mode, horario_apresentacao, is_driver, cache_final, motivo_recusa, user_id,
+  const [
+    { data: aData },
+    { data: elegiveis },
+    { data: avail },
+    { data: confl },
+    { data: mData },
+    { data: iData },
+  ] = await Promise.all([
+    supabase
+      .from("party_assignments")
+      .select(
+        `id, status, presence_mode, horario_apresentacao, is_driver, cache_final, motivo_recusa, user_id,
            profiles ( nome_completo, nome_tio, cargo )`,
-        )
-        .eq("party_id", id),
-      supabase
-        .from("profiles")
-        .select("user_id, nome_completo, nome_tio, cargo")
-        .eq("role", "colaborador")
-        .eq("aprovado", true)
-        .eq("ativo", true)
-        .neq("cargo", "pendente"),
-      supabase.from("availability").select("user_id").eq("data", festa.data),
-      supabase
-        .from("party_assignments")
-        .select("user_id, parties!inner(data)")
-        .eq("parties.data", festa.data)
-        .neq("party_id", id)
-        .in("status", ["pendente", "confirmada"]),
-    ]);
+      )
+      .eq("party_id", id),
+    supabase
+      .from("profiles")
+      .select("user_id, nome_completo, nome_tio, cargo")
+      .eq("role", "colaborador")
+      .eq("aprovado", true)
+      .eq("ativo", true)
+      .neq("cargo", "pendente"),
+    supabase.from("availability").select("user_id").eq("data", festa.data),
+    supabase
+      .from("party_assignments")
+      .select("user_id, parties!inner(data)")
+      .eq("parties.data", festa.data)
+      .neq("party_id", id)
+      .in("status", ["pendente", "confirmada"]),
+    supabase
+      .from("party_stock_items")
+      .select("id, qtd_levada, qtd_devolvida, qtd_perdida, stock_items ( nome )")
+      .eq("party_id", id),
+    supabase.from("stock_items").select("id, nome").eq("ativo", true).order("nome"),
+  ]);
+
+  const materiais: Material[] = (
+    (mData ?? []) as unknown as {
+      id: string;
+      qtd_levada: number;
+      qtd_devolvida: number | null;
+      qtd_perdida: number;
+      stock_items: { nome: string } | null;
+    }[]
+  ).map((r) => ({
+    id: r.id,
+    nome: r.stock_items?.nome ?? "Item",
+    qtdLevada: r.qtd_levada,
+    qtdDevolvida: r.qtd_devolvida,
+    qtdPerdida: r.qtd_perdida,
+  }));
+  const itensEstoque = (iData ?? []) as { id: string; nome: string }[];
+  const festaRealizada = festa.status === "realizada" || festa.status === "paga";
 
   const assignments = (aData ?? []) as unknown as Assignment[];
   const assignedIds = new Set(assignments.map((a) => a.user_id));
@@ -254,6 +284,28 @@ export default async function FestaDetailPage({
                 <p className="rounded-md bg-muted px-3 py-2 text-muted-foreground">
                   {festa.observacoes}
                 </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-base">
+                Materiais {festaRealizada && "· conferência de devolução"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {itensEstoque.length === 0 && materiais.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Cadastre itens em Estoque para levar às festas.
+                </p>
+              ) : (
+                <MateriaisFesta
+                  partyId={id}
+                  realizada={festaRealizada}
+                  materiais={materiais}
+                  itens={itensEstoque}
+                />
               )}
             </CardContent>
           </Card>

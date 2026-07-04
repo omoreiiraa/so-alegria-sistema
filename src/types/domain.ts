@@ -66,3 +66,13 @@ export const VEHICLE_STATUS_LABEL: Record<VehicleStatus, string> = {
   em_uso: "Em uso",
   manutencao: "Manutenção",
 };
+
+export const DIAS_SEMANA_CURTO = [
+  "Dom",
+  "Seg",
+  "Ter",
+  "Qua",
+  "Qui",
+  "Sex",
+  "Sáb",
+] as const;

@@ -48,9 +48,9 @@
 - [x] Export CSV da semana
 
 ## Fase 4 — Operação
-- [ ] Veículos: CRUD, rodízio (alerta), vínculo com festa, status automático
-- [ ] Parceiros/buffets: CRUD + seleção na festa (endereço automático)
-- [ ] Estoque: itens (foto/compressão), vínculo à festa (baixa), devolução/conferência, divergências, histórico
+- [x] Veículos: CRUD, rodízio (alerta visual), vínculo com festa (status automático pendente)
+- [x] Parceiros/buffets: CRUD com CEP + seleção na festa (endereço automático)
+- [x] Estoque: itens (foto + compressão), vínculo à festa (baixa), devolução/conferência com perdas
 
 ## Fase 5 — Polimento
 - [ ] PWA instalável (manifest, service worker, offline básico)

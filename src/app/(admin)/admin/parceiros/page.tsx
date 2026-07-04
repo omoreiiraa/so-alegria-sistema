@@ -1,21 +1,27 @@
 import type { Metadata } from "next";
-import { Building2 } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
-import { EmptyState } from "@/components/common/empty-state";
+import { ParceirosManager, type Parceiro } from "@/components/admin/parceiros-manager";
 
 export const metadata: Metadata = { title: "Parceiros" };
 
 export default async function ParceirosPage() {
   await requireAdmin();
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("partners")
+    .select("id, nome, cep, logradouro, numero, complemento, bairro, cidade, uf, contato, observacoes")
+    .eq("ativo", true)
+    .order("nome");
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Parceiros" description="Buffets parceiros com endereço pronto." />
-      <EmptyState
-        icon={<Building2 className="size-6" />}
-        title="Cadastro de buffets em breve"
-        description="Cadastre buffets com endereço (via CEP) para selecionar rapidamente ao criar uma festa. Ver Fase 4 no roadmap."
+      <PageHeader
+        title="Parceiros"
+        description="Buffets parceiros. O endereço é preenchido automaticamente ao criar a festa."
       />
+      <ParceirosManager parceiros={(data ?? []) as Parceiro[]} />
     </div>
   );
 }
