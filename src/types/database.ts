@@ -725,6 +725,14 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_assigned_to_party: { Args: { p_party: string }; Returns: boolean }
       mark_payment_paid: { Args: { p_payment_id: string }; Returns: undefined }
+      set_nome_tio: {
+        Args: { p_nome: string; p_user: string }
+        Returns: undefined
+      }
+      set_user_active: {
+        Args: { p_ativo: boolean; p_user: string }
+        Returns: undefined
+      }
       refuse_assignment: {
         Args: { p_assignment_id: string; p_motivo?: string }
         Returns: undefined

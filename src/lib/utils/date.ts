@@ -28,8 +28,16 @@ const dateTimeFmt = new Intl.DateTimeFormat("pt-BR", {
 });
 
 /** Converte 'YYYY-MM-DD' para Date ao meio-dia local (evita salto de fuso). */
-function fromISODate(iso: string): Date {
+export function fromISODate(iso: string): Date {
   return new Date(`${iso}T12:00:00`);
+}
+
+/** Converte um Date para 'YYYY-MM-DD' usando os componentes locais (não UTC). */
+export function toISODateLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 export function formatDate(iso: string | Date): string {

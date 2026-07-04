@@ -22,21 +22,21 @@
 - [ ] Repositório GitHub privado + deploy Vercel
 
 ## Fase 1 — Colaborador core
-- [ ] Cadastro público (Nome, RG, CPF, e-mail, celular E.164, endereço via CEP, PIX, senha) + Zod
-- [ ] Verificação de e-mail (OTP)
-- [ ] Tela "aguardando aprovação" (status pendente)
-- [ ] Perfil: editar celular, endereço, PIX, senha (não editáveis: cargo, nome_tio, RG, CPF)
-- [ ] Disponibilidade (calendário editável)
-- [ ] Minha Escala (lista + calendário, detalhe da festa)
+- [x] Cadastro público (Nome, RG-SP, CPF, e-mail, celular E.164, endereço via CEP, PIX, senha) + Zod
+- [ ] Verificação de e-mail por OTP/Resend (hoje: confirmação por link; SMTP pendente)
+- [x] Tela "aguardando aprovação" (status pendente)
+- [x] Perfil: editar celular, endereço, PIX, senha (não editáveis: cargo, nome_tio, RG, CPF)
+- [x] Disponibilidade (calendário editável, toque para marcar/desmarcar)
+- [x] Minha Escala (lista com cartão de convite; visão de calendário pendente)
 
 ## Fase 2 — Admin core
 - [ ] CRUD de festas (form completo)
 - [ ] Kanban (colunas de status) + Calendário (mês/semana)
-- [ ] CRUD colaboradores (lista/filtros, detalhe)
-- [ ] Aprovar cadastro, alterar cargo, definir nome de tio, desativar
+- [x] CRUD colaboradores (lista, pendentes x equipe)
+- [x] Aprovar cadastro, alterar cargo, definir nome de tio, desativar/reativar
 - [ ] Escalar colaboradores (busca, disponibilidade na data, conflito de horário)
 - [ ] Definir por assignment: modo apresentação, horário, motorista, cachê custom
-- [ ] Fluxo convite → confirmar/recusar (colaborador)
+- [x] Fluxo convite → confirmar/recusar/cancelar (colaborador)
 - [ ] Notificações painel (sino/badge) + e-mail (Resend) para recusa/cancelamento/novo cadastro
 
 ## Fase 3 — Pagamentos
