@@ -30,12 +30,12 @@
 - [x] Minha Escala (lista com cartão de convite; visão de calendário pendente)
 
 ## Fase 2 — Admin core
-- [ ] CRUD de festas (form completo)
-- [ ] Kanban (colunas de status) + Calendário (mês/semana)
+- [x] CRUD de festas (form completo: tipo, local parceiro/CEP, veículos, viagem)
+- [x] Kanban (colunas de status) + Calendário (mês) com toggle
 - [x] CRUD colaboradores (lista, pendentes x equipe)
 - [x] Aprovar cadastro, alterar cargo, definir nome de tio, desativar/reativar
-- [ ] Escalar colaboradores (busca, disponibilidade na data, conflito de horário)
-- [ ] Definir por assignment: modo apresentação, horário, motorista, cachê custom
+- [x] Escalar colaboradores (busca, disponibilidade na data, alerta de outra festa no dia)
+- [x] Definir por assignment: modo apresentação, horário, motorista, cachê custom
 - [x] Fluxo convite → confirmar/recusar/cancelar (colaborador)
 - [ ] Notificações painel (sino/badge) + e-mail (Resend) para recusa/cancelamento/novo cadastro
 

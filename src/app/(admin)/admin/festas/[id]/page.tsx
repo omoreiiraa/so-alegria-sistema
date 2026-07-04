@@ -1,0 +1,351 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  ArrowLeft,
+  Pencil,
+  Clock,
+  MapPin,
+  Cake,
+  Users,
+  Plane,
+  Truck,
+} from "lucide-react";
+import { requireAdmin } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/common/empty-state";
+import { FestaStatusControl } from "@/components/admin/festa-status-control";
+import { EscalarPanel } from "@/components/admin/escalar-panel";
+import { RemoverEscalado } from "@/components/admin/remover-escalado";
+import { formatDateLong, formatTime } from "@/lib/utils/date";
+import { formatBRL } from "@/lib/utils/money";
+import {
+  CARGO_LABEL,
+  PARTY_STATUS_LABEL,
+  PRESENCE_MODE_LABEL,
+  VEHICLE_TYPE_LABEL,
+} from "@/types/domain";
+import type {
+  AssignmentStatus,
+  CargoType,
+  PartyStatus,
+  PresenceMode,
+  VehicleType,
+} from "@/types/domain";
+
+export const metadata: Metadata = { title: "Festa" };
+
+type Festa = {
+  id: string;
+  status: PartyStatus;
+  data: string;
+  hora_inicio: string;
+  hora_fim: string;
+  is_viagem: boolean;
+  contratante_nome: string | null;
+  aniversariante_nome: string | null;
+  aniversariante_idade: number | null;
+  qtd_criancas: number | null;
+  observacoes: string | null;
+  logradouro: string | null;
+  numero: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  uf: string | null;
+  party_types: { nome: string } | null;
+  partners: { nome: string; cidade: string | null; uf: string | null } | null;
+  party_vehicles: {
+    vehicles: { id: string; apelido: string; tipo: VehicleType; placa: string | null } | null;
+  }[];
+};
+
+type Assignment = {
+  id: string;
+  status: AssignmentStatus;
+  presence_mode: PresenceMode | null;
+  horario_apresentacao: string | null;
+  is_driver: boolean;
+  cache_final: number | null;
+  motivo_recusa: string | null;
+  user_id: string;
+  profiles: { nome_completo: string | null; nome_tio: string | null; cargo: CargoType } | null;
+};
+
+function localFesta(f: Festa): string {
+  if (f.partners?.nome) {
+    return f.partners.cidade
+      ? `${f.partners.nome} — ${f.partners.cidade}/${f.partners.uf ?? ""}`
+      : f.partners.nome;
+  }
+  return (
+    [
+      f.logradouro && `${f.logradouro}${f.numero ? `, ${f.numero}` : ""}`,
+      f.bairro,
+      f.cidade && `${f.cidade}${f.uf ? `/${f.uf}` : ""}`,
+    ]
+      .filter(Boolean)
+      .join(" · ") || "Local a definir"
+  );
+}
+
+function statusBadge(status: AssignmentStatus) {
+  if (status === "confirmada")
+    return <Badge className="bg-verde/15 text-verde-escuro">Confirmada</Badge>;
+  if (status === "pendente")
+    return <Badge className="bg-laranja/15 text-laranja-escuro">Pendente</Badge>;
+  if (status === "recusada") return <Badge variant="secondary">Recusada</Badge>;
+  return <Badge variant="secondary">Cancelada</Badge>;
+}
+
+export default async function FestaDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  await requireAdmin();
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: festaData } = await supabase
+    .from("parties")
+    .select(
+      `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome, aniversariante_nome,
+       aniversariante_idade, qtd_criancas, observacoes, logradouro, numero, bairro, cidade, uf,
+       party_types ( nome ), partners ( nome, cidade, uf ),
+       party_vehicles ( vehicles ( id, apelido, tipo, placa ) )`,
+    )
+    .eq("id", id)
+    .single();
+
+  if (!festaData) notFound();
+  const festa = festaData as unknown as Festa;
+
+  const [{ data: aData }, { data: elegiveis }, { data: avail }, { data: confl }] =
+    await Promise.all([
+      supabase
+        .from("party_assignments")
+        .select(
+          `id, status, presence_mode, horario_apresentacao, is_driver, cache_final, motivo_recusa, user_id,
+           profiles ( nome_completo, nome_tio, cargo )`,
+        )
+        .eq("party_id", id),
+      supabase
+        .from("profiles")
+        .select("user_id, nome_completo, nome_tio, cargo")
+        .eq("role", "colaborador")
+        .eq("aprovado", true)
+        .eq("ativo", true)
+        .neq("cargo", "pendente"),
+      supabase.from("availability").select("user_id").eq("data", festa.data),
+      supabase
+        .from("party_assignments")
+        .select("user_id, parties!inner(data)")
+        .eq("parties.data", festa.data)
+        .neq("party_id", id)
+        .in("status", ["pendente", "confirmada"]),
+    ]);
+
+  const assignments = (aData ?? []) as unknown as Assignment[];
+  const assignedIds = new Set(assignments.map((a) => a.user_id));
+  const availSet = new Set((avail ?? []).map((r) => r.user_id));
+  const conflitoSet = new Set(
+    ((confl ?? []) as unknown as { user_id: string }[]).map((r) => r.user_id),
+  );
+
+  const eligible = ((elegiveis ?? []) as {
+    user_id: string;
+    nome_completo: string | null;
+    nome_tio: string | null;
+    cargo: CargoType;
+  }[])
+    .filter((p) => !assignedIds.has(p.user_id))
+    .map((p) => ({
+      userId: p.user_id,
+      nome: p.nome_completo ?? p.nome_tio ?? "Colaborador",
+      cargo: p.cargo,
+      disponivel: availSet.has(p.user_id),
+      conflito: conflitoSet.has(p.user_id),
+    }));
+
+  const carros = festa.party_vehicles
+    .map((pv) => pv.vehicles)
+    .filter((v): v is NonNullable<typeof v> => !!v && v.tipo === "carro")
+    .map((v) => ({ id: v.id, apelido: v.apelido, placa: v.placa }));
+
+  const confirmados = assignments.filter((a) => a.status === "confirmada").length;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Button
+            render={<Link href="/admin/festas" />}
+            variant="ghost"
+            size="icon"
+            aria-label="Voltar"
+          >
+            <ArrowLeft className="size-4" />
+          </Button>
+          <div>
+            <h1 className="font-display text-2xl font-extrabold tracking-tight">
+              {festa.party_types?.nome ?? "Festa"}
+            </h1>
+            <p className="text-sm capitalize text-muted-foreground">
+              {formatDateLong(festa.data)}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">{PARTY_STATUS_LABEL[festa.status]}</Badge>
+          <Button render={<Link href={`/admin/festas/${id}/editar`} />} variant="outline" size="sm">
+            <Pencil className="size-4" /> Editar
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-base">Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FestaStatusControl festaId={id} status={festa.status} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-base">Informações</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2.5 text-sm">
+              <Info icon={<Clock className="size-4" />}>
+                {formatTime(festa.hora_inicio)} às {formatTime(festa.hora_fim)}
+              </Info>
+              <Info icon={<MapPin className="size-4" />}>{localFesta(festa)}</Info>
+              {festa.contratante_nome && (
+                <Info icon={<Users className="size-4" />}>
+                  Contratante: {festa.contratante_nome}
+                </Info>
+              )}
+              {(festa.aniversariante_nome || festa.aniversariante_idade != null) && (
+                <Info icon={<Cake className="size-4" />}>
+                  {festa.aniversariante_nome}
+                  {festa.aniversariante_idade != null ? ` · ${festa.aniversariante_idade} anos` : ""}
+                  {festa.qtd_criancas != null ? ` · ${festa.qtd_criancas} crianças` : ""}
+                </Info>
+              )}
+              {festa.is_viagem && (
+                <Info icon={<Plane className="size-4" />}>Viagem (cachê dobrado)</Info>
+              )}
+              {carros.length > 0 || festa.party_vehicles.length > 0 ? (
+                <Info icon={<Truck className="size-4" />}>
+                  {festa.party_vehicles
+                    .map((pv) => pv.vehicles)
+                    .filter(Boolean)
+                    .map((v) => `${VEHICLE_TYPE_LABEL[v!.tipo]} ${v!.apelido}`)
+                    .join(", ")}
+                </Info>
+              ) : null}
+              {festa.observacoes && (
+                <p className="rounded-md bg-muted px-3 py-2 text-muted-foreground">
+                  {festa.observacoes}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between">
+              <CardTitle className="font-display text-base">
+                Equipe ({confirmados}/{assignments.length} confirmados)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {assignments.length === 0 ? (
+                <p className="py-4 text-center text-sm text-muted-foreground">
+                  Ninguém escalado ainda.
+                </p>
+              ) : (
+                assignments.map((a) => (
+                  <div
+                    key={a.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {a.profiles?.nome_tio || a.profiles?.nome_completo || "Colaborador"}
+                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                        {a.profiles && (
+                          <Badge variant="secondary" className="text-xs">
+                            {CARGO_LABEL[a.profiles.cargo]}
+                          </Badge>
+                        )}
+                        {a.presence_mode && (
+                          <span>
+                            {PRESENCE_MODE_LABEL[a.presence_mode]}
+                            {a.horario_apresentacao
+                              ? ` ${formatTime(a.horario_apresentacao)}`
+                              : ""}
+                          </span>
+                        )}
+                        {a.is_driver && <span>· motorista</span>}
+                        {a.cache_final != null && (
+                          <span className="font-medium text-verde-escuro">
+                            {formatBRL(a.cache_final)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {statusBadge(a.status)}
+                      <RemoverEscalado assignmentId={a.id} partyId={id} />
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-base">Escalar colaborador</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {eligible.length === 0 && assignments.length === 0 ? (
+                <EmptyState
+                  icon={<Users className="size-6" />}
+                  title="Nenhum colaborador aprovado"
+                  description="Aprove colaboradores em Colaboradores para poder escalá-los."
+                />
+              ) : (
+                <EscalarPanel festaId={id} carros={carros} eligible={eligible} />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Info({
+  icon,
+  children,
+}: {
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <p className="flex items-start gap-2">
+      <span className="mt-0.5 text-muted-foreground">{icon}</span>
+      <span>{children}</span>
+    </p>
+  );
+}

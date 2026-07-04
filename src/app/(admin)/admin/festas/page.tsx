@@ -1,21 +1,71 @@
 import type { Metadata } from "next";
-import { PartyPopper } from "lucide-react";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
-import { EmptyState } from "@/components/common/empty-state";
+import { Button } from "@/components/ui/button";
+import { FestasView, type FestaCard } from "@/components/admin/festas-view";
+import type { PartyStatus } from "@/types/domain";
 
 export const metadata: Metadata = { title: "Festas" };
 
+type Row = {
+  id: string;
+  status: PartyStatus;
+  data: string;
+  hora_inicio: string;
+  hora_fim: string;
+  is_viagem: boolean;
+  contratante_nome: string | null;
+  cidade: string | null;
+  uf: string | null;
+  party_types: { nome: string } | null;
+  partners: { nome: string } | null;
+  party_assignments: { status: string }[];
+};
+
 export default async function FestasPage() {
   await requireAdmin();
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("parties")
+    .select(
+      `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome, cidade, uf,
+       party_types ( nome ), partners ( nome ), party_assignments ( status )`,
+    )
+    .order("data", { ascending: true });
+
+  const rows = (data ?? []) as unknown as Row[];
+  const festas: FestaCard[] = rows.map((r) => ({
+    id: r.id,
+    status: r.status,
+    data: r.data,
+    horaInicio: r.hora_inicio,
+    horaFim: r.hora_fim,
+    isViagem: r.is_viagem,
+    contratante: r.contratante_nome,
+    tipo: r.party_types?.nome ?? null,
+    local: r.partners?.nome ?? (r.cidade ? `${r.cidade}/${r.uf ?? ""}` : ""),
+    total: r.party_assignments.length,
+    confirmados: r.party_assignments.filter((a) => a.status === "confirmada").length,
+  }));
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Festas" description="Kanban e calendário das festas." />
-      <EmptyState
-        icon={<PartyPopper className="size-6" />}
-        title="Kanban de festas em breve"
-        description="Aqui você vai criar festas, arrastar entre status (Fechada → Escalada → Confirmada → Realizada) e escalar a equipe. Ver Fase 2 no roadmap."
+      <PageHeader
+        title="Festas"
+        description="Gerencie as festas por status ou pelo calendário."
+        action={
+          <Button
+            render={<Link href="/admin/festas/nova" />}
+            className="bg-verde font-semibold text-white hover:bg-verde-escuro"
+          >
+            <Plus className="size-4" /> Nova festa
+          </Button>
+        }
       />
+      <FestasView festas={festas} />
     </div>
   );
 }
