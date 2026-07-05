@@ -23,7 +23,7 @@ export async function login(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.senha,
   });
@@ -35,8 +35,9 @@ export async function login(
     return { error: "E-mail ou senha incorretos." };
   }
 
-  const next = (formData.get("next") as string) || "/app";
-  redirect(next);
+  const next = formData.get("next") as string | null;
+  if (next) redirect(next);
+  redirect(data.user?.app_metadata?.role === "admin" ? "/admin" : "/app");
 }
 
 export async function cadastrar(

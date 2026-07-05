@@ -48,7 +48,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && (pathname === "/login" || pathname === "/cadastro")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/app";
+    url.pathname = user.app_metadata?.role === "admin" ? "/admin" : "/app";
     return NextResponse.redirect(url);
   }
 
