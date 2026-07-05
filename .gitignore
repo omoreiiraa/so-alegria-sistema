@@ -40,6 +40,11 @@ yarn-error.log*
 # claude code (configurações locais/pessoais)
 .claude/settings.local.json*
 
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

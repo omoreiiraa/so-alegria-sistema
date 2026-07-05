@@ -56,10 +56,15 @@
 - [x] PWA instalável (manifest, ícone, service worker network-first)
 - [x] Central de notificações no admin (sino/badge)
 - [x] Performance (região gru1 colada ao Supabase, cache() de sessão, loading skeletons)
-- [ ] Testes E2E fluxos críticos (cadastro, confirmação, fechamento, RLS)
-- [ ] Auditoria de segurança (advisors, policies, testes de isolamento)
-- [ ] Acessibilidade (foco, contraste, reduced-motion)
-- [ ] E-mail (Resend SMTP) + rate limit (Upstash)
+- [x] Rate limit por IP nas rotas de auth (código pronto; requer chaves Upstash)
+- [x] Auditoria de segurança: advisors revisados; FK indexes; policies com `(select …)`
+      consolidadas `to authenticated`; funções de trigger sem EXECUTE público;
+      RPCs restritas a authenticated. RLS confirmada nas 14 tabelas.
+- [x] Acessibilidade: `prefers-reduced-motion` respeitado; foco visível (shadcn)
+- [x] Testes E2E de fumaça (Playwright): landing, login, cadastro e guarda de rotas
+- [ ] Testes E2E autenticados (cadastro→confirmar→fechar) — requer contas de teste
+- [ ] E-mail (Resend SMTP) — adiado
+- [ ] Ligar leaked-password protection no painel Auth (Supabase)
 
 ## Critérios de aceite (do PRD §12) — checklist de verificação
 - [ ] 1. Colaborador A não lê dados de B (RLS testado)
