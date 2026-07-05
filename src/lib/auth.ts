@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/domain";
@@ -10,24 +11,27 @@ export type SessionProfile = {
 
 /**
  * Retorna o usuário logado + seu profile, ou null se não houver sessão.
- * Usado nos layouts protegidos para checar role/aprovação.
+ * Envolto em `cache()` para deduplicar por request — o layout e a página
+ * compartilham o mesmo resultado (uma única chamada a getUser + profiles).
  */
-export async function getSessionProfile(): Promise<SessionProfile | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+export const getSessionProfile = cache(
+  async (): Promise<SessionProfile | null> => {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
 
-  if (!profile) return null;
-  return { userId: user.id, email: user.email ?? null, profile };
-}
+    if (!profile) return null;
+    return { userId: user.id, email: user.email ?? null, profile };
+  },
+);
 
 /** Exige sessão de colaborador aprovado; redireciona conforme o estado. */
 export async function requireColaborador(): Promise<SessionProfile> {

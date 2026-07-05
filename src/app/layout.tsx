@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Baloo_2, Figtree, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import "./globals.css";
 
 const figtree = Figtree({
@@ -31,6 +32,9 @@ export const metadata: Metadata = {
   description:
     "Plataforma da Só Alegria para escala, confirmação de festas, disponibilidade e pagamentos dos recreadores.",
   applicationName: "Só Alegria",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "Só Alegria", statusBarStyle: "default" },
+  icons: { icon: "/icon.svg", apple: "/icon.svg" },
 };
 
 export const viewport: Viewport = {
@@ -53,6 +57,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster richColors position="top-center" />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

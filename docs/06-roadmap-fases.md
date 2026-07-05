@@ -37,7 +37,7 @@
 - [x] Escalar colaboradores (busca, disponibilidade na data, alerta de outra festa no dia)
 - [x] Definir por assignment: modo apresentação, horário, motorista, cachê custom
 - [x] Fluxo convite → confirmar/recusar/cancelar (colaborador)
-- [ ] Notificações painel (sino/badge) + e-mail (Resend) para recusa/cancelamento/novo cadastro
+- [x] Notificações no painel (sino/badge + marcar lida); e-mail (Resend) pendente
 
 ## Fase 3 — Pagamentos
 - [x] `calc_cache` + snapshot na confirmação (valores verificados no banco)
@@ -53,11 +53,13 @@
 - [x] Estoque: itens (foto + compressão), vínculo à festa (baixa), devolução/conferência com perdas
 
 ## Fase 5 — Polimento
-- [ ] PWA instalável (manifest, service worker, offline básico)
+- [x] PWA instalável (manifest, ícone, service worker network-first)
+- [x] Central de notificações no admin (sino/badge)
+- [x] Performance (região gru1 colada ao Supabase, cache() de sessão, loading skeletons)
 - [ ] Testes E2E fluxos críticos (cadastro, confirmação, fechamento, RLS)
 - [ ] Auditoria de segurança (advisors, policies, testes de isolamento)
-- [ ] Performance (imagens, skeletons, cache)
 - [ ] Acessibilidade (foco, contraste, reduced-motion)
+- [ ] E-mail (Resend SMTP) + rate limit (Upstash)
 
 ## Critérios de aceite (do PRD §12) — checklist de verificação
 - [ ] 1. Colaborador A não lê dados de B (RLS testado)
