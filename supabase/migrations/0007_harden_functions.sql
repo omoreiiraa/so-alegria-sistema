@@ -34,7 +34,7 @@ begin
   if v_base is null then return null; end if;
   v_sub := v_base + (case when p_duracao_horas >= (5 + 59.0/60.0) then 20 else 0 end);
   if coalesce(p_is_viagem, false) then v_sub := v_sub * 2; end if;
-  v_sub := v_sub + (case when coalesce(p_is_driver, false) then 20 else 0 end);
+  v_sub := v_sub + (case when coalesce(p_is_driver, false) then 50 else 0 end);
   return v_sub;
 end $$;
 

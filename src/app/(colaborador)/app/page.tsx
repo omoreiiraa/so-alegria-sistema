@@ -49,7 +49,7 @@ function previewCache(
   if (base == null || dur == null) return null;
   let s = base + (dur >= 5 + 59 / 60 ? 20 : 0);
   if (viagem) s *= 2;
-  s += driver ? 20 : 0;
+  s += driver ? 50 : 0;
   return s;
 }
 

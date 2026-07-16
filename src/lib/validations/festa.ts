@@ -14,7 +14,10 @@ export const festaSchema = z.object({
   is_viagem: z.boolean().optional().default(false),
   observacoes: z.string().trim().optional().default(""),
   // Local: buffet parceiro OU endereço livre
-  partner_id: z.string().uuid().nullable().optional(),
+  partner_id: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.string().uuid().nullable().optional()
+  ),
   cep: z.string().trim().optional().default(""),
   logradouro: z.string().trim().optional().default(""),
   numero: z.string().trim().optional().default(""),
@@ -32,7 +35,10 @@ export const escalaSchema = z.object({
   presence_mode: z.enum(["na_empresa", "direto_no_local"]),
   horario_apresentacao: z.string().regex(HORA, "Horário inválido").nullable().optional(),
   is_driver: z.boolean().optional().default(false),
-  vehicle_id: z.string().uuid().nullable().optional(),
+  vehicle_id: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.string().uuid().nullable().optional()
+  ),
   cache_custom: z.number().min(0).max(100000).nullable().optional(),
 });
 export type EscalaInput = z.infer<typeof escalaSchema>;

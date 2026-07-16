@@ -190,7 +190,7 @@ export function EscalarPanel({
             >
               <span>
                 <span className="block font-medium">Motorista (dirige o carro)</span>
-                <span className="text-xs text-muted-foreground">+ R$ 20 no cachê</span>
+                <span className="text-xs text-muted-foreground">+ R$ 50 no cachê</span>
               </span>
               <span
                 className={cn(

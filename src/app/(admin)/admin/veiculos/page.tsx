@@ -18,7 +18,7 @@ export default async function VeiculosPage() {
     <div className="space-y-6">
       <PageHeader
         title="Veículos"
-        description="Frota da empresa. Vans são rotativas; carros são dirigidos por um recreador (+R$20)."
+        description="Frota da empresa. Vans são rotativas; carros são dirigidos por um recreador (+R$50)."
       />
       <VeiculosManager veiculos={(data ?? []) as Veiculo[]} />
     </div>

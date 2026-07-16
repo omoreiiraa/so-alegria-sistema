@@ -119,9 +119,14 @@ export async function excluirFesta(id: string) {
 }
 
 export async function escalarColaborador(input: unknown) {
+  console.log("escalarColaborador input received:", input);
   const parsed = escalaSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
+    const issue = parsed.error.issues[0];
+    const path = issue?.path.join(".") ?? "unknown";
+    const msg = issue?.message ?? "Dados inválidos";
+    console.error(`Validation error in ${path}: ${msg}`);
+    return { error: `Campo [${path}]: ${msg}` };
   }
   const d = parsed.data;
   const supabase = await createClient();
