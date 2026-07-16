@@ -46,6 +46,9 @@ interface TodayParty {
   party_vehicles: {
     vehicles: { id: string; apelido: string; tipo: VehicleType; placa: string | null; dia_rodizio: number | null } | null;
   }[];
+  party_party_types: {
+    party_types: { nome: string } | null;
+  }[];
   party_assignments: {
     id: string;
     status: AssignmentStatus;
@@ -93,6 +96,9 @@ export default async function AdminHome() {
       partners ( nome, cidade, uf ),
       party_vehicles (
         vehicles ( id, apelido, tipo, placa, dia_rodizio )
+      ),
+      party_party_types (
+        party_types ( nome )
       ),
       party_assignments (
         id,
@@ -382,8 +388,12 @@ export default async function AdminHome() {
                       cancelada: "bg-vermelho/10 text-vermelho",
                     };
 
+                    const partyTypeNames = party.party_party_types && party.party_party_types.length > 0
+                      ? party.party_party_types.map(pt => pt.party_types?.nome).filter(Boolean).join(" + ")
+                      : party.party_types?.nome;
+
                     const partyDetails = [
-                      party.party_types?.nome,
+                      partyTypeNames,
                       party.aniversariante_nome && `Níver: ${party.aniversariante_nome}${party.aniversariante_idade ? ` (${party.aniversariante_idade} anos)` : ""}`,
                     ].filter(Boolean).join(" · ");
 

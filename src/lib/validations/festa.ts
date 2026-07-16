@@ -6,7 +6,7 @@ export const festaSchema = z.object({
   data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data"),
   hora_inicio: z.string().regex(HORA, "Hora de início inválida"),
   hora_fim: z.string().regex(HORA, "Hora de fim inválida"),
-  party_type_id: z.string().uuid("Selecione o tipo de festa"),
+  party_type_ids: z.array(z.string().uuid()).min(1, "Selecione pelo menos um tipo de festa"),
   contratante_nome: z.string().trim().optional().default(""),
   aniversariante_nome: z.string().trim().optional().default(""),
   aniversariante_idade: z.number().int().min(0).max(120).nullable().optional(),

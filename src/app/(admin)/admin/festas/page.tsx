@@ -23,6 +23,7 @@ type Row = {
   party_types: { nome: string } | null;
   partners: { nome: string } | null;
   party_assignments: { status: string }[];
+  party_party_types: { party_types: { nome: string } | null }[];
 };
 
 export default async function FestasPage() {
@@ -32,7 +33,8 @@ export default async function FestasPage() {
     .from("parties")
     .select(
       `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome, cidade, uf,
-       party_types ( nome ), partners ( nome ), party_assignments ( status )`,
+       party_types ( nome ), partners ( nome ), party_assignments ( status ),
+       party_party_types ( party_types ( nome ) )`,
     )
     .order("data", { ascending: true });
 
@@ -45,7 +47,9 @@ export default async function FestasPage() {
     horaFim: r.hora_fim,
     isViagem: r.is_viagem,
     contratante: r.contratante_nome,
-    tipo: r.party_types?.nome ?? null,
+    tipo: r.party_party_types && r.party_party_types.length > 0
+      ? r.party_party_types.map((pt) => pt.party_types?.nome).filter(Boolean).join(" + ")
+      : r.party_types?.nome ?? null,
     local: r.partners?.nome ?? (r.cidade ? `${r.cidade}/${r.uf ?? ""}` : ""),
     total: r.party_assignments.length,
     confirmados: r.party_assignments.filter((a) => a.status === "confirmada").length,

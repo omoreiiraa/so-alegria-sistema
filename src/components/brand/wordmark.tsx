@@ -23,17 +23,17 @@ export function Wordmark({
   );
 }
 
-/** Ícone/avatar circular da marca (iniciais SA). */
+/** Ícone/avatar circular da marca (imagem do logo). */
 export function BrandBadge({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-full bg-verde font-display text-lg font-extrabold text-white shadow-sm ring-2 ring-amarelo",
+        "inline-flex items-center justify-center rounded-full bg-verde font-display text-lg font-extrabold text-white shadow-sm ring-2 ring-amarelo overflow-hidden",
         className,
       )}
       aria-hidden
     >
-      SA
+      <img src="/soalegria.jpg" alt="Só Alegria" className="size-full object-cover" />
     </span>
   );
 }

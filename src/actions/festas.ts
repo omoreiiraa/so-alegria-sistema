@@ -21,7 +21,7 @@ function toRow(input: import("@/lib/validations/festa").FestaInput) {
     data: input.data,
     hora_inicio: input.hora_inicio,
     hora_fim: input.hora_fim,
-    party_type_id: input.party_type_id,
+    party_type_id: input.party_type_ids[0], // primary selected type for backwards compatibility
     contratante_nome: input.contratante_nome || null,
     aniversariante_nome: input.aniversariante_nome || null,
     aniversariante_idade: input.aniversariante_idade ?? null,
@@ -49,6 +49,16 @@ async function syncVehicles(partyId: string, vehicleIds: string[]) {
   }
 }
 
+async function syncPartyTypes(partyId: string, partyTypeIds: string[]) {
+  const supabase = await createClient();
+  await supabase.from("party_party_types").delete().eq("party_id", partyId);
+  if (partyTypeIds.length > 0) {
+    await supabase
+      .from("party_party_types")
+      .insert(partyTypeIds.map((party_type_id) => ({ party_id: partyId, party_type_id })));
+  }
+}
+
 export async function criarFesta(input: unknown) {
   const parsed = festaSchema.safeParse(input);
   if (!parsed.success) {
@@ -62,7 +72,11 @@ export async function criarFesta(input: unknown) {
     .single();
   if (error || !data) return { error: "Não foi possível criar a festa." };
 
-  await syncVehicles(data.id, parsed.data.vehicle_ids ?? []);
+  await Promise.all([
+    syncVehicles(data.id, parsed.data.vehicle_ids ?? []),
+    syncPartyTypes(data.id, parsed.data.party_type_ids ?? [])
+  ]);
+
   revalidatePath("/admin/festas");
   return { ok: true, id: data.id };
 }
@@ -76,7 +90,11 @@ export async function atualizarFesta(id: string, input: unknown) {
   const { error } = await supabase.from("parties").update(toRow(parsed.data)).eq("id", id);
   if (error) return { error: "Não foi possível salvar a festa." };
 
-  await syncVehicles(id, parsed.data.vehicle_ids ?? []);
+  await Promise.all([
+    syncVehicles(id, parsed.data.vehicle_ids ?? []),
+    syncPartyTypes(id, parsed.data.party_type_ids ?? [])
+  ]);
+
   revalidatePath("/admin/festas");
   revalidatePath(`/admin/festas/${id}`);
   return { ok: true, id };

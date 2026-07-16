@@ -61,6 +61,9 @@ type Festa = {
   party_vehicles: {
     vehicles: { id: string; apelido: string; tipo: VehicleType; placa: string | null } | null;
   }[];
+  party_party_types: {
+    party_types: { nome: string } | null;
+  }[];
 };
 
 type Assignment = {
@@ -116,7 +119,8 @@ export default async function FestaDetailPage({
       `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome, aniversariante_nome,
        aniversariante_idade, qtd_criancas, observacoes, logradouro, numero, bairro, cidade, uf,
        party_types ( nome ), partners ( nome, cidade, uf ),
-       party_vehicles ( vehicles ( id, apelido, tipo, placa ) )`,
+       party_vehicles ( vehicles ( id, apelido, tipo, placa ) ),
+       party_party_types ( party_types ( nome ) )`,
     )
     .eq("id", id)
     .single();
@@ -221,7 +225,9 @@ export default async function FestaDetailPage({
           </Button>
           <div>
             <h1 className="font-display text-2xl font-extrabold tracking-tight">
-              {festa.party_types?.nome ?? "Festa"}
+              {festa.party_party_types && festa.party_party_types.length > 0
+                ? festa.party_party_types.map((pt) => pt.party_types?.nome).filter(Boolean).join(" + ")
+                : festa.party_types?.nome ?? "Festa"}
             </h1>
             <p className="text-sm capitalize text-muted-foreground">
               {formatDateLong(festa.data)}

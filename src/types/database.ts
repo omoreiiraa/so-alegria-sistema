@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -309,6 +309,42 @@ export type Database = {
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_party_types: {
+        Row: {
+          created_at: string
+          id: string
+          party_id: string
+          party_type_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          party_id: string
+          party_type_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          party_id?: string
+          party_type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_party_types_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_party_types_party_type_id_fkey"
+            columns: ["party_type_id"]
+            isOneToOne: false
+            referencedRelation: "party_types"
             referencedColumns: ["id"]
           },
         ]
@@ -725,16 +761,16 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_assigned_to_party: { Args: { p_party: string }; Returns: boolean }
       mark_payment_paid: { Args: { p_payment_id: string }; Returns: undefined }
+      refuse_assignment: {
+        Args: { p_assignment_id: string; p_motivo?: string }
+        Returns: undefined
+      }
       set_nome_tio: {
         Args: { p_nome: string; p_user: string }
         Returns: undefined
       }
       set_user_active: {
         Args: { p_ativo: boolean; p_user: string }
-        Returns: undefined
-      }
-      refuse_assignment: {
-        Args: { p_assignment_id: string; p_motivo?: string }
         Returns: undefined
       }
       set_user_cargo: {
@@ -936,3 +972,4 @@ export const Constants = {
     },
   },
 } as const
+

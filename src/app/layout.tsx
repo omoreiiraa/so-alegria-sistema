@@ -34,7 +34,20 @@ export const metadata: Metadata = {
   applicationName: "Só Alegria",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "Só Alegria", statusBarStyle: "default" },
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  icons: { icon: "/soalegria.jpg", apple: "/soalegria.jpg" },
+  openGraph: {
+    title: "Só Alegria — Gestão de Recreação",
+    description:
+      "Plataforma da Só Alegria para escala, confirmação de festas, disponibilidade e pagamentos dos recreadores.",
+    images: [
+      {
+        url: "/soalegria.jpg",
+        width: 800,
+        height: 600,
+        alt: "Logo Só Alegria",
+      },
+    ],
+  },
 };
 
 export const viewport: Viewport = {

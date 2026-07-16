@@ -21,7 +21,7 @@ export type FestaInitial = {
   data: string;
   hora_inicio: string;
   hora_fim: string;
-  party_type_id: string;
+  party_type_ids: string[];
   contratante_nome: string;
   aniversariante_nome: string;
   aniversariante_idade: string;
@@ -43,7 +43,7 @@ const EMPTY: FestaInitial = {
   data: "",
   hora_inicio: "",
   hora_fim: "",
-  party_type_id: "",
+  party_type_ids: [],
   contratante_nome: "",
   aniversariante_nome: "",
   aniversariante_idade: "",
@@ -108,12 +108,21 @@ export function FestaForm({
     }));
   }
 
+  function togglePartyType(id: string) {
+    setForm((f) => ({
+      ...f,
+      party_type_ids: f.party_type_ids.includes(id)
+        ? f.party_type_ids.filter((v) => v !== id)
+        : [...f.party_type_ids, id],
+    }));
+  }
+
   function salvar() {
     const payload = {
       data: form.data,
       hora_inicio: form.hora_inicio,
       hora_fim: form.hora_fim,
-      party_type_id: form.party_type_id,
+      party_type_ids: form.party_type_ids,
       contratante_nome: form.contratante_nome,
       aniversariante_nome: form.aniversariante_nome,
       aniversariante_idade: form.aniversariante_idade
@@ -187,8 +196,8 @@ export function FestaForm({
             {partyTypes.map((t) => (
               <Chip
                 key={t.id}
-                active={form.party_type_id === t.id}
-                onClick={() => set("party_type_id", t.id)}
+                active={form.party_type_ids.includes(t.id)}
+                onClick={() => togglePartyType(t.id)}
               >
                 {t.nome}
               </Chip>
