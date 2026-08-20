@@ -10,6 +10,7 @@ import {
   Users,
   Plane,
   Truck,
+  UserCheck,
 } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -51,6 +52,7 @@ type Festa = {
   aniversariante_idade: number | null;
   qtd_criancas: number | null;
   observacoes: string | null;
+  fechada_por: string | null;
   logradouro: string | null;
   numero: string | null;
   bairro: string | null;
@@ -117,7 +119,7 @@ export default async function FestaDetailPage({
     .from("parties")
     .select(
       `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome, aniversariante_nome,
-       aniversariante_idade, qtd_criancas, observacoes, logradouro, numero, bairro, cidade, uf,
+       aniversariante_idade, qtd_criancas, observacoes, fechada_por, logradouro, numero, bairro, cidade, uf,
        party_types ( nome ), partners ( nome, cidade, uf ),
        party_vehicles ( vehicles ( id, apelido, tipo, placa ) ),
        party_party_types ( party_types ( nome ) )`,
@@ -258,6 +260,11 @@ export default async function FestaDetailPage({
               <CardTitle className="font-display text-base">Informações</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2.5 text-sm">
+              {festa.fechada_por && (
+                <Info icon={<UserCheck className="size-4" />}>
+                  Fechada por: {festa.fechada_por}
+                </Info>
+              )}
               <Info icon={<Clock className="size-4" />}>
                 {formatTime(festa.hora_inicio)} às {formatTime(festa.hora_fim)}
               </Info>

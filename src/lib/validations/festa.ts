@@ -3,6 +3,7 @@ import { z } from "zod";
 const HORA = /^\d{2}:\d{2}$/;
 
 export const festaSchema = z.object({
+  fechada_por: z.string().trim().min(1, "Informe quem fechou a festa"),
   data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data"),
   hora_inicio: z.string().regex(HORA, "Hora de início inválida"),
   hora_fim: z.string().regex(HORA, "Hora de fim inválida"),

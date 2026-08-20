@@ -18,6 +18,7 @@ const STATUSES: PartyStatus[] = [
 function toRow(input: import("@/lib/validations/festa").FestaInput) {
   const usaParceiro = !!input.partner_id;
   return {
+    fechada_por: input.fechada_por.trim(),
     data: input.data,
     hora_inicio: input.hora_inicio,
     hora_fim: input.hora_fim,
