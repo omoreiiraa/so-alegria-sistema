@@ -30,6 +30,7 @@ export default async function EditarFestaPage({
   if (!festa) notFound();
 
   const initial: FestaInitial = {
+    fechada_por: festa.fechada_por ?? "",
     data: festa.data,
     hora_inicio: formatTime(festa.hora_inicio),
     hora_fim: formatTime(festa.hora_fim),

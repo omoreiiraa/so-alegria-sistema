@@ -18,6 +18,7 @@ type Option = { id: string; nome: string };
 type VehicleOption = { id: string; apelido: string; tipo: VehicleType; placa: string | null };
 
 export type FestaInitial = {
+  fechada_por: string;
   data: string;
   hora_inicio: string;
   hora_fim: string;
@@ -40,6 +41,7 @@ export type FestaInitial = {
 };
 
 const EMPTY: FestaInitial = {
+  fechada_por: "",
   data: "",
   hora_inicio: "",
   hora_fim: "",
@@ -119,6 +121,7 @@ export function FestaForm({
 
   function salvar() {
     const payload = {
+      fechada_por: form.fechada_por,
       data: form.data,
       hora_inicio: form.hora_inicio,
       hora_fim: form.hora_fim,
@@ -158,6 +161,23 @@ export function FestaForm({
 
   return (
     <div className="space-y-5">
+      <Card>
+        <CardContent className="space-y-4 p-5">
+          <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
+            Festa fechada por
+          </h2>
+          <div className="space-y-2">
+            <Label htmlFor="fechada_por">Nome de quem fechou/cadastrou a festa</Label>
+            <Input
+              id="fechada_por"
+              value={form.fechada_por}
+              onChange={(e) => set("fechada_por", e.target.value)}
+              placeholder="Seu nome"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
