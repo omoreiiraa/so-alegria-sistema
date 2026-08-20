@@ -11,6 +11,8 @@ import {
   Plane,
   Truck,
   UserCheck,
+  Phone,
+  PartyPopper,
 } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -22,6 +24,8 @@ import { FestaStatusControl } from "@/components/admin/festa-status-control";
 import { EscalarPanel } from "@/components/admin/escalar-panel";
 import { RemoverEscalado } from "@/components/admin/remover-escalado";
 import { MateriaisFesta, type Material } from "@/components/admin/materiais-festa";
+import { GerarOrcamento } from "@/components/admin/gerar-orcamento";
+import { formatPhoneBR } from "@/lib/utils/phone";
 import { formatDateLong, formatTime } from "@/lib/utils/date";
 import { formatBRL } from "@/lib/utils/money";
 import {
@@ -51,6 +55,10 @@ type Festa = {
   aniversariante_nome: string | null;
   aniversariante_idade: number | null;
   qtd_criancas: number | null;
+  qtd_recreadores: number | null;
+  tema_festa: string | null;
+  telefone_contato: string | null;
+  valor_festa: number | null;
   observacoes: string | null;
   fechada_por: string | null;
   logradouro: string | null;
@@ -119,7 +127,8 @@ export default async function FestaDetailPage({
     .from("parties")
     .select(
       `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome, aniversariante_nome,
-       aniversariante_idade, qtd_criancas, observacoes, fechada_por, logradouro, numero, bairro, cidade, uf,
+       aniversariante_idade, qtd_criancas, qtd_recreadores, tema_festa, telefone_contato,
+       valor_festa, observacoes, fechada_por, logradouro, numero, bairro, cidade, uf,
        party_types ( nome ), partners ( nome, cidade, uf ),
        party_vehicles ( vehicles ( id, apelido, tipo, placa ) ),
        party_party_types ( party_types ( nome ) )`,
@@ -274,11 +283,26 @@ export default async function FestaDetailPage({
                   Contratante: {festa.contratante_nome}
                 </Info>
               )}
+              {festa.telefone_contato && (
+                <Info icon={<Phone className="size-4" />}>
+                  {formatPhoneBR(festa.telefone_contato)}
+                </Info>
+              )}
               {(festa.aniversariante_nome || festa.aniversariante_idade != null) && (
                 <Info icon={<Cake className="size-4" />}>
                   {festa.aniversariante_nome}
                   {festa.aniversariante_idade != null ? ` · ${festa.aniversariante_idade} anos` : ""}
                   {festa.qtd_criancas != null ? ` · ${festa.qtd_criancas} crianças` : ""}
+                </Info>
+              )}
+              {festa.tema_festa && (
+                <Info icon={<PartyPopper className="size-4" />}>
+                  Tema: {festa.tema_festa}
+                </Info>
+              )}
+              {festa.qtd_recreadores != null && (
+                <Info icon={<Users className="size-4" />}>
+                  {festa.qtd_recreadores} recreador(es)/monitor(es)
                 </Info>
               )}
               {festa.is_viagem && (
@@ -320,6 +344,29 @@ export default async function FestaDetailPage({
                   itens={itensEstoque}
                 />
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-base">Orçamento</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {festa.valor_festa != null && (
+                <div className="flex items-baseline justify-between rounded-lg border border-verde/40 bg-verde/5 px-4 py-3">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Valor da festa
+                  </span>
+                  <span className="font-display text-xl font-extrabold text-verde-escuro">
+                    {formatBRL(festa.valor_festa)}
+                  </span>
+                </div>
+              )}
+              <GerarOrcamento
+                festaId={id}
+                telefone={festa.telefone_contato}
+                contratante={festa.contratante_nome}
+              />
             </CardContent>
           </Card>
         </div>

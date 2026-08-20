@@ -113,9 +113,13 @@ export type Database = {
           partner_id: string | null
           party_type_id: string | null
           qtd_criancas: number | null
+          qtd_recreadores: number | null
           status: Database["public"]["Enums"]["party_status"]
+          telefone_contato: string | null
+          tema_festa: string | null
           uf: string | null
           updated_at: string
+          valor_festa: number | null
         }
         Insert: {
           aniversariante_idade?: number | null
@@ -139,9 +143,13 @@ export type Database = {
           partner_id?: string | null
           party_type_id?: string | null
           qtd_criancas?: number | null
+          qtd_recreadores?: number | null
           status?: Database["public"]["Enums"]["party_status"]
+          telefone_contato?: string | null
+          tema_festa?: string | null
           uf?: string | null
           updated_at?: string
+          valor_festa?: number | null
         }
         Update: {
           aniversariante_idade?: number | null
@@ -165,9 +173,13 @@ export type Database = {
           partner_id?: string | null
           party_type_id?: string | null
           qtd_criancas?: number | null
+          qtd_recreadores?: number | null
           status?: Database["public"]["Enums"]["party_status"]
+          telefone_contato?: string | null
+          tema_festa?: string | null
           uf?: string | null
           updated_at?: string
+          valor_festa?: number | null
         }
         Relationships: [
           {
@@ -800,6 +812,7 @@ export type Database = {
         | "experiente"
         | "coordenador"
       party_status:
+        | "orcamento"
         | "fechada"
         | "escalada"
         | "confirmada"
@@ -953,6 +966,7 @@ export const Constants = {
         "coordenador",
       ],
       party_status: [
+        "orcamento",
         "fechada",
         "escalada",
         "confirmada",

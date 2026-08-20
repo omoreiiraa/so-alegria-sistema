@@ -380,6 +380,7 @@ export default async function AdminHome() {
                 <div className="space-y-4">
                   {todayParties.map((party) => {
                     const statusColors: Record<PartyStatus, string> = {
+                      orcamento: "bg-muted/60 text-muted-foreground",
                       fechada: "bg-muted text-muted-foreground",
                       escalada: "bg-laranja/15 text-laranja-escuro",
                       confirmada: "bg-verde/15 text-verde-escuro",

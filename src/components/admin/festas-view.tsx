@@ -27,6 +27,7 @@ export type FestaCard = {
 };
 
 const COLUNAS: { status: PartyStatus; dot: string }[] = [
+  { status: "orcamento", dot: "border border-dashed border-muted-foreground bg-transparent" },
   { status: "fechada", dot: "bg-muted-foreground/40" },
   { status: "escalada", dot: "bg-laranja" },
   { status: "confirmada", dot: "bg-verde" },

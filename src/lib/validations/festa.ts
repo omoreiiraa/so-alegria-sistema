@@ -14,6 +14,11 @@ export const festaSchema = z.object({
   qtd_criancas: z.number().int().min(0).max(2000).nullable().optional(),
   is_viagem: z.boolean().optional().default(false),
   observacoes: z.string().trim().optional().default(""),
+  // Orçamento
+  valor_festa: z.number().min(0).max(1000000).nullable().optional(),
+  telefone_contato: z.string().trim().optional().default(""),
+  tema_festa: z.string().trim().optional().default(""),
+  qtd_recreadores: z.number().int().min(0).max(200).nullable().optional(),
   // Local: buffet parceiro OU endereço livre
   partner_id: z.preprocess(
     (val) => (val === "" ? null : val),

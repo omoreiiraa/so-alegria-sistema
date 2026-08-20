@@ -36,6 +36,7 @@ export const CARGO_BASE: Record<CargoType, number | null> = {
 };
 
 export const PARTY_STATUS_LABEL: Record<PartyStatus, string> = {
+  orcamento: "Orçamento",
   fechada: "Fechada",
   escalada: "Escalada",
   confirmada: "Confirmada",

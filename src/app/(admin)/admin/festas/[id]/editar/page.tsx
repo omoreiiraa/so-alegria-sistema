@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
 import { FestaForm, type FestaInitial } from "@/components/admin/festa-form";
 import { formatTime } from "@/lib/utils/date";
+import { formatBRLInput } from "@/lib/utils/money";
+import { formatPhoneBR } from "@/lib/utils/phone";
 
 export const metadata: Metadata = { title: "Editar festa" };
 
@@ -45,6 +47,10 @@ export default async function EditarFestaPage({
     qtd_criancas: festa.qtd_criancas?.toString() ?? "",
     is_viagem: festa.is_viagem,
     observacoes: festa.observacoes ?? "",
+    valor_festa: festa.valor_festa != null ? formatBRLInput(String(Math.round(festa.valor_festa * 100))) : "",
+    telefone_contato: festa.telefone_contato ? formatPhoneBR(festa.telefone_contato) : "",
+    tema_festa: festa.tema_festa ?? "",
+    qtd_recreadores: festa.qtd_recreadores?.toString() ?? "",
     partner_id: festa.partner_id ?? "",
     cep: festa.cep ?? "",
     logradouro: festa.logradouro ?? "",

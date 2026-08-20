@@ -19,6 +19,7 @@ import { PARTY_STATUS_LABEL } from "@/types/domain";
 import type { PartyStatus } from "@/types/domain";
 
 const PIPELINE: PartyStatus[] = [
+  "orcamento",
   "fechada",
   "escalada",
   "confirmada",
