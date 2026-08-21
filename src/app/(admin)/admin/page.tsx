@@ -341,7 +341,7 @@ export default async function AdminHome() {
       </div>
 
       {/* Main Dashboard Content */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_350px] 2xl:grid-cols-[1fr_420px]">
         {/* Left Side: Today's Parties */}
         <div className="space-y-4">
           <Card className="border border-border">

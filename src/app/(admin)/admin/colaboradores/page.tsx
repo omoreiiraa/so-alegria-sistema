@@ -97,9 +97,11 @@ export default async function ColaboradoresPage() {
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-vermelho">
             Aguardando aprovação ({pendentes.length})
           </h2>
-          {pendentes.map((c) => (
-            <ColabCard key={c.user_id} c={c} />
-          ))}
+          <div className="grid gap-3 xl:grid-cols-2 2xl:grid-cols-3">
+            {pendentes.map((c) => (
+              <ColabCard key={c.user_id} c={c} />
+            ))}
+          </div>
         </section>
       )}
 
@@ -108,9 +110,11 @@ export default async function ColaboradoresPage() {
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
             Equipe ({aprovados.length})
           </h2>
-          {aprovados.map((c) => (
-            <ColabCard key={c.user_id} c={c} />
-          ))}
+          <div className="grid gap-3 xl:grid-cols-2 2xl:grid-cols-3">
+            {aprovados.map((c) => (
+              <ColabCard key={c.user_id} c={c} />
+            ))}
+          </div>
         </section>
       )}
     </div>

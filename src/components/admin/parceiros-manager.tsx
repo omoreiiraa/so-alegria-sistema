@@ -138,7 +138,7 @@ export function ParceirosManager({ parceiros }: { parceiros: Parceiro[] }) {
           description="Cadastre buffets parceiros para selecionar rapidamente ao criar uma festa."
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {parceiros.map((p) => (
             <Card key={p.id}>
               <CardContent className="flex items-start justify-between gap-3 p-4">

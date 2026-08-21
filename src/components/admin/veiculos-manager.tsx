@@ -108,7 +108,7 @@ export function VeiculosManager({ veiculos }: { veiculos: Veiculo[] }) {
           description="Cadastre carros e vans da frota para vincular às festas."
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {veiculos.map((v) => (
             <Card key={v.id}>
               <CardContent className="flex items-start justify-between gap-3 p-4">

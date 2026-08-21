@@ -174,7 +174,9 @@ export function FestaForm({
   }
 
   return (
-    <div className="space-y-5">
+    // Formulário tem largura própria: campos esticados numa tela larga
+    // ficam difíceis de ler e de preencher.
+    <div className="max-w-4xl space-y-5">
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">

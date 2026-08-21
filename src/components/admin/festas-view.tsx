@@ -62,8 +62,10 @@ export function FestasView({ festas }: { festas: FestaCard[] }) {
         <div className="flex gap-4 overflow-x-auto pb-2">
           {COLUNAS.map((col) => {
             const itens = festas.filter((f) => f.status === col.status);
+            // Colunas dividem a largura disponível e só entram em scroll
+            // horizontal quando não cabem no mínimo de 16rem.
             return (
-              <div key={col.status} className="w-72 shrink-0">
+              <div key={col.status} className="min-w-64 flex-1">
                 <div className="mb-2 flex items-center gap-2 px-1">
                   <span className={cn("size-2 rounded-full", col.dot)} />
                   <h3 className="text-sm font-semibold">{PARTY_STATUS_LABEL[col.status]}</h3>
@@ -97,7 +99,7 @@ export function FestasView({ festas }: { festas: FestaCard[] }) {
             }}
             className="rounded-xl border border-border bg-card"
           />
-          <div className="space-y-2">
+          <div>
             {(() => {
               const alvo = dia ? toISODateLocal(dia) : null;
               const doDia = alvo ? festas.filter((f) => f.data === alvo) : [];
@@ -113,7 +115,13 @@ export function FestasView({ festas }: { festas: FestaCard[] }) {
                     Nenhuma festa em {formatDate(alvo)}.
                   </p>
                 );
-              return doDia.map((f) => <FestaMiniCard key={f.id} f={f} />);
+              return (
+                <div className="grid gap-2 sm:grid-cols-2 2xl:grid-cols-3">
+                  {doDia.map((f) => (
+                    <FestaMiniCard key={f.id} f={f} />
+                  ))}
+                </div>
+              );
             })()}
           </div>
         </div>
