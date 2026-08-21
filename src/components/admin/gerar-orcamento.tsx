@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { FileText, Loader2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toWhatsAppNumber } from "@/lib/utils/phone";
 
 /**
  * Baixa o PDF do orçamento e oferece o envio ao cliente pelo WhatsApp.
@@ -56,10 +57,7 @@ export function GerarOrcamento({
   }
 
   function abrirWhatsApp() {
-    const digits = (telefone ?? "").replace(/\D/g, "");
-    const numero = digits.length > 0
-      ? digits.startsWith("55") ? digits : `55${digits}`
-      : "";
+    const numero = toWhatsAppNumber(telefone);
     const saudacao = contratante ? `Olá, ${contratante}!` : "Olá!";
     const msg = encodeURIComponent(
       `${saudacao} Segue o orçamento da sua festa com a Só Alegria — Recreação e Discoteca. Qualquer dúvida é só chamar!`,

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { gerarOrcamentoPDF, type OrcamentoData } from "@/lib/pdf/orcamento";
-import { formatPhoneBR } from "@/lib/utils/phone";
+import { formatPhoneNational } from "@/lib/utils/phone";
 
 type PartyRow = {
   id: string;
@@ -105,7 +105,7 @@ export async function GET(
     aniversarianteNome: festa.aniversariante_nome,
     aniversarianteIdade: festa.aniversariante_idade,
     telefoneContato: festa.telefone_contato
-      ? formatPhoneBR(festa.telefone_contato)
+      ? formatPhoneNational(festa.telefone_contato)
       : null,
     endereco: montarEndereco(festa),
     data: festa.data,

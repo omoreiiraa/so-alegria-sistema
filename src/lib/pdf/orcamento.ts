@@ -277,20 +277,28 @@ export async function gerarOrcamentoPDF(d: OrcamentoData): Promise<Uint8Array> {
 
   // ── Valor ────────────────────────────────────────────────────────────────
   if (d.valorFesta != null) {
-    garantirEspaco(58);
-    y -= 12;
+    const CAIXA_ALTURA = 40;
+    const RESPIRO = 20;
+    // A caixa cresce para BAIXO a partir do cursor: desenhar para cima
+    // invadiria a última linha da lista de materiais.
+    garantirEspaco(CAIXA_ALTURA + RESPIRO);
+    y -= RESPIRO;
+    const base = y - CAIXA_ALTURA;
+
     page.drawRectangle({
       x: MARGEM,
-      y: y - 12,
+      y: base,
       width: LARGURA_UTIL,
-      height: 40,
+      height: CAIXA_ALTURA,
       color: rgb(0.96, 0.98, 0.96),
       borderColor: VERDE,
       borderWidth: 1,
     });
+    // Rótulo e valor compartilham a linha de base, centralizada na caixa.
+    const linhaBase = base + 14;
     page.drawText("VALOR TOTAL", {
       x: MARGEM + 14,
-      y: y + 6,
+      y: linhaBase,
       size: 10,
       font: bold,
       color: CINZA,
@@ -298,23 +306,28 @@ export async function gerarOrcamentoPDF(d: OrcamentoData): Promise<Uint8Array> {
     const valor = sanitize(formatBRL(d.valorFesta));
     page.drawText(valor, {
       x: A4.width - MARGEM - 14 - bold.widthOfTextAtSize(valor, 16),
-      y: y + 2,
+      y: linhaBase,
       size: 16,
       font: bold,
       color: VERDE,
     });
-    y -= 44;
+    y = base - 16;
   }
 
-  // ── Rodapé ───────────────────────────────────────────────────────────────
-  const rodape = `Só Alegria — Recreação e Discoteca · CNPJ ${CNPJ_SO_ALEGRIA}`;
-  page.drawText(sanitize(rodape), {
-    x: (A4.width - regular.widthOfTextAtSize(sanitize(rodape), 8)) / 2,
-    y: MARGEM - 16,
-    size: 8,
-    font: regular,
-    color: CINZA,
-  });
+  // ── Rodapé (em todas as páginas, inclusive quando a lista pagina) ────────
+  const rodape = sanitize(
+    `Só Alegria — Recreação e Discoteca · CNPJ ${CNPJ_SO_ALEGRIA}`,
+  );
+  const rodapeX = (A4.width - regular.widthOfTextAtSize(rodape, 8)) / 2;
+  for (const p of pdf.getPages()) {
+    p.drawText(rodape, {
+      x: rodapeX,
+      y: MARGEM - 16,
+      size: 8,
+      font: regular,
+      color: CINZA,
+    });
+  }
 
   return pdf.save();
 }

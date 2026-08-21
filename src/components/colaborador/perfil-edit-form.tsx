@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/common/password-input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { atualizarPerfil, atualizarSenha } from "@/actions/perfil";
-import { formatPhoneBR } from "@/lib/utils/phone";
+import { formatPhoneBR, formatPhoneNational } from "@/lib/utils/phone";
 import { formatCEP, lookupCep } from "@/lib/utils/cep";
 
 type Initial = {
@@ -27,7 +27,7 @@ export function PerfilEditForm({ initial }: { initial: Initial }) {
   const [pending, startTransition] = useTransition();
   const [form, setForm] = useState<Initial>({
     ...initial,
-    celular: initial.celular ? formatPhoneBR(initial.celular) : "",
+    celular: formatPhoneNational(initial.celular),
   });
   const [buscandoCep, setBuscandoCep] = useState(false);
 

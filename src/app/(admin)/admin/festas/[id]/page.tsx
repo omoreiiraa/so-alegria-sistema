@@ -25,7 +25,7 @@ import { EscalarPanel } from "@/components/admin/escalar-panel";
 import { RemoverEscalado } from "@/components/admin/remover-escalado";
 import { MateriaisFesta, type Material } from "@/components/admin/materiais-festa";
 import { GerarOrcamento } from "@/components/admin/gerar-orcamento";
-import { formatPhoneBR } from "@/lib/utils/phone";
+import { formatPhoneNational } from "@/lib/utils/phone";
 import { formatDateLong, formatTime } from "@/lib/utils/date";
 import { formatBRL } from "@/lib/utils/money";
 import {
@@ -285,7 +285,7 @@ export default async function FestaDetailPage({
               )}
               {festa.telefone_contato && (
                 <Info icon={<Phone className="size-4" />}>
-                  {formatPhoneBR(festa.telefone_contato)}
+                  {formatPhoneNational(festa.telefone_contato)}
                 </Info>
               )}
               {(festa.aniversariante_nome || festa.aniversariante_idade != null) && (
