@@ -238,10 +238,10 @@ export async function gerarOrcamentoPDF(d: OrcamentoData): Promise<Uint8Array> {
     d.qtdRecreadores != null ? `${d.qtdRecreadores}` : "-",
   );
 
-  // ── Materiais ────────────────────────────────────────────────────────────
-  secao("MATERIAIS INCLUSOS");
+  // ── Serviço prestado ─────────────────────────────────────────────────────
+  secao("SERVIÇO PRESTADO");
   if (d.materiais.length === 0) {
-    texto("Nenhum material vinculado a esta festa.", {
+    texto("Nenhum item vinculado a esta festa.", {
       size: 10,
       color: CINZA,
     });
