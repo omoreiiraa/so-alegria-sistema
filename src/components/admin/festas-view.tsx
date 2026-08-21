@@ -63,9 +63,10 @@ export function FestasView({ festas }: { festas: FestaCard[] }) {
           {COLUNAS.map((col) => {
             const itens = festas.filter((f) => f.status === col.status);
             // Colunas dividem a largura disponível e só entram em scroll
-            // horizontal quando não cabem no mínimo de 16rem.
+            // horizontal quando não cabem no mínimo de 15rem. Esse mínimo é o
+            // que faz as 6 colunas caberem inteiras numa tela de 1920.
             return (
-              <div key={col.status} className="min-w-64 flex-1">
+              <div key={col.status} className="min-w-60 flex-1">
                 <div className="mb-2 flex items-center gap-2 px-1">
                   <span className={cn("size-2 rounded-full", col.dot)} />
                   <h3 className="text-sm font-semibold">{PARTY_STATUS_LABEL[col.status]}</h3>

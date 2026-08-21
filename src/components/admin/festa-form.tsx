@@ -174,9 +174,10 @@ export function FestaForm({
   }
 
   return (
-    // Formulário tem largura própria: campos esticados numa tela larga
-    // ficam difíceis de ler e de preencher.
-    <div className="max-w-4xl space-y-5">
+    <div className="space-y-5">
+      {/* Em telas largas os blocos se dividem em duas colunas: aproveita o
+          espaço sem esticar os campos, que ficariam ruins de ler. */}
+      <div className="grid items-start gap-5 xl:grid-cols-2">
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
@@ -391,6 +392,7 @@ export function FestaForm({
           <Textarea id="obs" value={form.observacoes} onChange={(e) => set("observacoes", e.target.value)} rows={3} placeholder="Detalhes, ponto de referência, combinados…" />
         </CardContent>
       </Card>
+      </div>
 
       <div className="flex justify-end gap-2">
         <Button variant="ghost" onClick={() => router.back()} disabled={pending}>
