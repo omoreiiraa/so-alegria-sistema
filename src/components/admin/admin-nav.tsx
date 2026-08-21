@@ -11,12 +11,14 @@ import {
   Building2,
   Package,
   Printer,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const adminNavItems = [
   { href: "/admin", label: "Início", icon: LayoutDashboard, exact: true },
   { href: "/admin/festas", label: "Festas", icon: PartyPopper },
+  { href: "/admin/ordens-servico", label: "Ordem de Serviço", icon: FileText },
   { href: "/admin/folha-dia", label: "Folha do Dia", icon: Printer },
   { href: "/admin/colaboradores", label: "Colaboradores", icon: Users },
   { href: "/admin/pagamentos", label: "Pagamentos", icon: Wallet },

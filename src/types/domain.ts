@@ -16,6 +16,8 @@ export type AssignmentStatus = Database["public"]["Enums"]["assignment_status"];
 export type PresenceMode = Database["public"]["Enums"]["presence_mode"];
 export type VehicleType = Database["public"]["Enums"]["vehicle_type"];
 export type VehicleStatus = Database["public"]["Enums"]["vehicle_status"];
+export type ServiceOrderStatus = Database["public"]["Enums"]["service_order_status"];
+export type ConfirmationMethod = Database["public"]["Enums"]["confirmation_method"];
 
 /** Rótulos de exibição (pt-BR). A lógica de cachê vive no banco (docs/01). */
 export const CARGO_LABEL: Record<CargoType, string> = {
@@ -43,6 +45,19 @@ export const PARTY_STATUS_LABEL: Record<PartyStatus, string> = {
   realizada: "Realizada",
   paga: "Paga",
   cancelada: "Cancelada",
+};
+
+export const SERVICE_ORDER_STATUS_LABEL: Record<ServiceOrderStatus, string> = {
+  rascunho: "Rascunho",
+  enviada: "Enviada",
+  aceita: "Aceita",
+  recusada: "Recusada",
+};
+
+export const CONFIRMATION_METHOD_LABEL: Record<ConfirmationMethod, string> = {
+  whatsapp: "WhatsApp",
+  email: "E-mail",
+  assinatura_fisica: "Assinatura física",
 };
 
 export const ASSIGNMENT_STATUS_LABEL: Record<AssignmentStatus, string> = {

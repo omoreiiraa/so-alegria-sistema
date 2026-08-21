@@ -622,6 +622,71 @@ export type Database = {
         }
         Relationships: []
       }
+      service_orders: {
+        Row: {
+          ano: number
+          arquivo_path: string | null
+          created_at: string
+          data_emissao: string
+          enviada_em: string | null
+          id: string
+          meio_confirmacao:
+            | Database["public"]["Enums"]["confirmation_method"]
+            | null
+          motivo_recusa: string | null
+          numero: number
+          observacoes: string | null
+          party_assignment_id: string
+          respondido_em: string | null
+          status: Database["public"]["Enums"]["service_order_status"]
+          updated_at: string
+        }
+        Insert: {
+          ano: number
+          arquivo_path?: string | null
+          created_at?: string
+          data_emissao?: string
+          enviada_em?: string | null
+          id?: string
+          meio_confirmacao?:
+            | Database["public"]["Enums"]["confirmation_method"]
+            | null
+          motivo_recusa?: string | null
+          numero: number
+          observacoes?: string | null
+          party_assignment_id: string
+          respondido_em?: string | null
+          status?: Database["public"]["Enums"]["service_order_status"]
+          updated_at?: string
+        }
+        Update: {
+          ano?: number
+          arquivo_path?: string | null
+          created_at?: string
+          data_emissao?: string
+          enviada_em?: string | null
+          id?: string
+          meio_confirmacao?:
+            | Database["public"]["Enums"]["confirmation_method"]
+            | null
+          motivo_recusa?: string | null
+          numero?: number
+          observacoes?: string | null
+          party_assignment_id?: string
+          respondido_em?: string | null
+          status?: Database["public"]["Enums"]["service_order_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_orders_party_assignment_id_fkey"
+            columns: ["party_assignment_id"]
+            isOneToOne: true
+            referencedRelation: "party_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_items: {
         Row: {
           ativo: boolean
@@ -765,6 +830,10 @@ export type Database = {
         Args: { p_assignment_id: string; p_motivo?: string }
         Returns: undefined
       }
+      create_service_order: {
+        Args: { p_assignment: string }
+        Returns: Database["public"]["Tables"]["service_orders"]["Row"]
+      }
       close_payment_week: {
         Args: { p_semana_inicio: string }
         Returns: undefined
@@ -811,6 +880,8 @@ export type Database = {
         | "junior"
         | "experiente"
         | "coordenador"
+      confirmation_method: "whatsapp" | "email" | "assinatura_fisica"
+      service_order_status: "rascunho" | "enviada" | "aceita" | "recusada"
       party_status:
         | "orcamento"
         | "fechada"
@@ -976,6 +1047,8 @@ export const Constants = {
       ],
       payment_status: ["aberto", "pago"],
       presence_mode: ["na_empresa", "direto_no_local"],
+      confirmation_method: ["whatsapp", "email", "assinatura_fisica"],
+      service_order_status: ["rascunho", "enviada", "aceita", "recusada"],
       stock_movement_type: [
         "entrada",
         "saida_festa",
