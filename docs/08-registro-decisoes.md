@@ -76,3 +76,39 @@ Ex.: `<Button render={<Link href="/x" />}>Label</Button>`. Props seguem a API do
 Tokens de tema em CSS (`@theme inline`) — sem `tailwind.config`.
 
 <!-- Novas decisões abaixo -->
+
+### ADR-0009 — Ordem de Serviço por colaborador escalado (não por festa)
+**Data:** 2026-08-21
+**Contexto:** O modelo ANEXO I fornecido pela CONTRATANTE traz "Função exercida pelo
+CONTRATADO", "Valor do cachê" e o bloco "CONFIRMAÇÃO DO CONTRATADO(A)" — todos campos de
+uma pessoa só. Além disso, cada colaborador precisa de um número de OS próprio para emitir
+a NFS-e dele.
+**Decisão:** Uma OS por `party_assignment`. Festa com 4 recreadores gera 4 OS.
+Numeração sequencial **por ano** (`0001/2026`), gerada em `create_service_order()`
+(SECURITY DEFINER, admin) com `pg_advisory_xact_lock` por ano — duas emissões simultâneas
+não colidem no mesmo número.
+**Consequência:** `service_orders.party_assignment_id` é UNIQUE. Excluir a escalação
+remove a OS em cascata, e o número não é reaproveitado.
+
+### ADR-0010 — Preenchimento do .docx por substituição de texto no XML
+**Data:** 2026-08-21
+**Contexto:** A OS precisa sair no modelo exato da CONTRATANTE, editável no Word — não
+adianta gerar um PDF ou um documento novo "parecido".
+**Decisão:** O `.docx` do modelo fica embutido em base64 (`src/lib/docx/modelo-os.ts`);
+na geração ele é descompactado com `fflate`, o texto das linhas conhecidas é substituído em
+`word/document.xml` e o zip é remontado. Preserva a formatação original.
+**Premissa verificada:** neste modelo cada linha está num **único `<w:t>`**. O caso difícil
+do OOXML (texto quebrado em vários runs) não ocorre aqui. **Se o modelo for trocado,
+revalidar isso** — a substituição falha silenciosamente (deixa a linha intacta) em vez de
+corromper o arquivo.
+**Alternativa descartada:** `docxtemplater` — exigiria marcadores no documento, e o modelo
+vem pronto da contratante.
+
+### ADR-0011 — Aceite da OS registrado pelo admin
+**Data:** 2026-08-21
+**Contexto:** O aceite acontece por WhatsApp, e-mail ou assinatura física — canais fora do
+sistema, como o próprio modelo prevê em "Meio de confirmação".
+**Decisão:** Não há tela de aceite para o colaborador. O admin registra a resposta
+(aceita/recusada), data-hora e meio de confirmação. A RLS já permite o colaborador **ler**
+a OS das próprias escalações, deixando o caminho aberto caso o aceite in-app seja pedido
+depois.

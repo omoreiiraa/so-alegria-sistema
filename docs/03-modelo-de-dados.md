@@ -110,6 +110,30 @@ create type stock_movement_type as enum ('entrada', 'saida_festa', 'devolucao', 
 ### `stock_movements`
 `id`, `stock_item_id → stock_items`, `tipo stock_movement_type`, `quantidade int`, `party_id → parties null`, `user_id uuid` (quem registrou), `observacao text null`.
 
+### `service_orders` (Ordem de Serviço — ANEXO I)
+Uma OS por colaborador escalado. Ver [ADR-0009](08-registro-decisoes.md).
+
+| Coluna | Tipo | Notas |
+|---|---|---|
+| `id` | uuid | |
+| `party_assignment_id` | → party_assignments **unique** | on delete cascade |
+| `ano` | smallint | ano da emissão (America/Sao_Paulo) |
+| `numero` | integer | sequencial dentro do ano; **unique (ano, numero)** |
+| `data_emissao` | date default hoje | |
+| `status` | service_order_status default `'rascunho'` | |
+| `enviada_em` | timestamptz null | |
+| `respondido_em` | timestamptz null | resposta do colaborador |
+| `meio_confirmacao` | confirmation_method null | WhatsApp / e-mail / assinatura |
+| `motivo_recusa` | text null | |
+| `arquivo_path` | text null | .docx preenchido no bucket `ordens-servico` (privado) |
+| `observacoes` | text null | |
+
+Enums: `service_order_status ('rascunho','enviada','aceita','recusada')` e
+`confirmation_method ('whatsapp','email','assinatura_fisica')`.
+
+Função: `create_service_order(p_assignment uuid) → service_orders` — **definer**, admin;
+numera com `pg_advisory_xact_lock` por ano.
+
 ### `notifications`
 `id`, `tipo text`, `titulo text`, `corpo text`, `party_id null`, `actor_user_id null`, `lida boolean default false`. Destinada aos **admins** (central compartilhada).
 
