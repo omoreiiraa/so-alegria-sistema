@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { formatCEP, lookupCep } from "@/lib/utils/cep";
+import { formatBRLInput, parseBRLInput } from "@/lib/utils/money";
+import { formatPhoneBR } from "@/lib/utils/phone";
 import { criarFesta, atualizarFesta } from "@/actions/festas";
 import { VEHICLE_TYPE_LABEL } from "@/types/domain";
 import type { VehicleType } from "@/types/domain";
@@ -29,6 +31,10 @@ export type FestaInitial = {
   qtd_criancas: string;
   is_viagem: boolean;
   observacoes: string;
+  valor_festa: string;
+  telefone_contato: string;
+  tema_festa: string;
+  qtd_recreadores: string;
   partner_id: string;
   cep: string;
   logradouro: string;
@@ -52,6 +58,10 @@ const EMPTY: FestaInitial = {
   qtd_criancas: "",
   is_viagem: false,
   observacoes: "",
+  valor_festa: "",
+  telefone_contato: "",
+  tema_festa: "",
+  qtd_recreadores: "",
   partner_id: "",
   cep: "",
   logradouro: "",
@@ -134,6 +144,10 @@ export function FestaForm({
       qtd_criancas: form.qtd_criancas ? Number(form.qtd_criancas) : null,
       is_viagem: form.is_viagem,
       observacoes: form.observacoes,
+      valor_festa: parseBRLInput(form.valor_festa),
+      telefone_contato: form.telefone_contato,
+      tema_festa: form.tema_festa,
+      qtd_recreadores: form.qtd_recreadores ? Number(form.qtd_recreadores) : null,
       partner_id: usaParceiro ? form.partner_id || null : null,
       cep: form.cep,
       logradouro: form.logradouro,
@@ -161,6 +175,9 @@ export function FestaForm({
 
   return (
     <div className="space-y-5">
+      {/* Em telas largas os blocos se dividem em duas colunas: aproveita o
+          espaço sem esticar os campos, que ficariam ruins de ler. */}
+      <div className="grid items-start gap-5 xl:grid-cols-2">
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
@@ -231,9 +248,21 @@ export function FestaForm({
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
             Detalhes
           </h2>
-          <div className="space-y-2">
-            <Label htmlFor="contratante">Contratante</Label>
-            <Input id="contratante" value={form.contratante_nome} onChange={(e) => set("contratante_nome", e.target.value)} placeholder="Quem contratou" />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="contratante">Contratante</Label>
+              <Input id="contratante" value={form.contratante_nome} onChange={(e) => set("contratante_nome", e.target.value)} placeholder="Quem contratou" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="telefone_contato">Telefone de contato</Label>
+              <Input
+                id="telefone_contato"
+                inputMode="tel"
+                value={form.telefone_contato}
+                onChange={(e) => set("telefone_contato", formatPhoneBR(e.target.value))}
+                placeholder="(11) 98765-4321"
+              />
+            </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-[1fr_100px_120px]">
             <div className="space-y-2">
@@ -247,6 +276,47 @@ export function FestaForm({
             <div className="space-y-2">
               <Label htmlFor="qtd">Nº crianças</Label>
               <Input id="qtd" type="number" inputMode="numeric" value={form.qtd_criancas} onChange={(e) => set("qtd_criancas", e.target.value)} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tema">Tema da festa</Label>
+            <Input id="tema" value={form.tema_festa} onChange={(e) => set("tema_festa", e.target.value)} placeholder="Ex.: Homem-Aranha, Frozen, Circo" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="space-y-4 p-5">
+          <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
+            Orçamento
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="valor_festa">Valor da festa</Label>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                  R$
+                </span>
+                <Input
+                  id="valor_festa"
+                  inputMode="numeric"
+                  className="pl-9"
+                  value={form.valor_festa}
+                  onChange={(e) => set("valor_festa", formatBRLInput(e.target.value))}
+                  placeholder="0,00"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="qtd_recreadores">Nº de recreadores/monitores</Label>
+              <Input
+                id="qtd_recreadores"
+                type="number"
+                inputMode="numeric"
+                value={form.qtd_recreadores}
+                onChange={(e) => set("qtd_recreadores", e.target.value)}
+                placeholder="Ex.: 3"
+              />
             </div>
           </div>
         </CardContent>
@@ -322,6 +392,7 @@ export function FestaForm({
           <Textarea id="obs" value={form.observacoes} onChange={(e) => set("observacoes", e.target.value)} rows={3} placeholder="Detalhes, ponto de referência, combinados…" />
         </CardContent>
       </Card>
+      </div>
 
       <div className="flex justify-end gap-2">
         <Button variant="ghost" onClick={() => router.back()} disabled={pending}>

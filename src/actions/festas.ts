@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { festaSchema, escalaSchema } from "@/lib/validations/festa";
 import { onlyDigitsCep } from "@/lib/utils/cep";
+import { toE164 } from "@/lib/utils/phone";
 import type { PartyStatus } from "@/types/domain";
 
 const STATUSES: PartyStatus[] = [
@@ -29,6 +30,12 @@ function toRow(input: import("@/lib/validations/festa").FestaInput) {
     qtd_criancas: input.qtd_criancas ?? null,
     is_viagem: input.is_viagem ?? false,
     observacoes: input.observacoes || null,
+    valor_festa: input.valor_festa ?? null,
+    telefone_contato: input.telefone_contato
+      ? toE164(input.telefone_contato) ?? input.telefone_contato
+      : null,
+    tema_festa: input.tema_festa || null,
+    qtd_recreadores: input.qtd_recreadores ?? null,
     partner_id: usaParceiro ? input.partner_id : null,
     cep: usaParceiro ? null : onlyDigitsCep(input.cep ?? "") || null,
     logradouro: usaParceiro ? null : input.logradouro || null,

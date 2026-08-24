@@ -61,7 +61,9 @@ export default async function AdminLayout({
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-6 lg:px-8 lg:py-8">
+        {/* Ocupa toda a largura disponível: o respiro vem do padding, que
+            cresce com a tela, e não de um limite fixo de largura. */}
+        <main className="w-full min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8 2xl:px-12">
           {children}
         </main>
       </div>
