@@ -38,25 +38,17 @@ export default function LandingPage() {
           Toda a sua rotina de festas, sem bagunça no WhatsApp.
         </h1>
         <p className="mt-4 max-w-xl text-pretty text-base text-muted-foreground sm:text-lg">
-          Escala, confirmação de festas, disponibilidade e pagamentos — tudo em
-          um só lugar, feito para os tios e tias da Só Alegria.
+          Festas, escala, frota e pagamentos — tudo num só lugar. Os tios e tias
+          recebem convite e cadastro por link no WhatsApp, sem precisar de conta.
         </p>
 
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
           <Button
-            render={<Link href="/cadastro" />}
+            render={<Link href="/login" />}
             size="lg"
             className="h-12 bg-laranja px-8 text-base font-bold text-white hover:bg-laranja-escuro"
           >
-            Criar minha conta
-          </Button>
-          <Button
-            render={<Link href="/login" />}
-            size="lg"
-            variant="outline"
-            className="h-12 border-verde/30 px-8 text-base font-bold text-verde-escuro hover:bg-verde/5"
-          >
-            Já tenho conta
+            Entrar no painel
           </Button>
         </div>
 

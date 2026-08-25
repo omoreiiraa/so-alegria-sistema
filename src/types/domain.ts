@@ -8,6 +8,7 @@ export type Vehicle = Tables<"vehicles">;
 export type Partner = Tables<"partners">;
 export type StockItem = Tables<"stock_items">;
 export type Notification = Tables<"notifications">;
+export type ColaboradorLink = Tables<"colaborador_links">;
 
 export type CargoType = Database["public"]["Enums"]["cargo_type"];
 export type UserRole = Database["public"]["Enums"]["user_role"];
@@ -18,6 +19,54 @@ export type VehicleType = Database["public"]["Enums"]["vehicle_type"];
 export type VehicleStatus = Database["public"]["Enums"]["vehicle_status"];
 export type ServiceOrderStatus = Database["public"]["Enums"]["service_order_status"];
 export type ConfirmationMethod = Database["public"]["Enums"]["confirmation_method"];
+export type LinkTipo = Database["public"]["Enums"]["link_tipo"];
+
+/** Estados possíveis de um link tokenizado, devolvidos por resolve_link(). */
+export type EstadoLink =
+  | "valido"
+  | "usado"
+  | "expirado"
+  | "revogado"
+  | "respondido"
+  | "inexistente";
+
+export type LinkColaboradorInfo = {
+  nome_completo: string | null;
+  celular: string | null;
+};
+
+export type ConviteFestaInfo = {
+  data: string;
+  hora_inicio: string;
+  hora_fim: string;
+  contratante: string | null;
+  logradouro: string | null;
+  numero: string | null;
+  complemento: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  uf: string | null;
+  is_viagem: boolean;
+};
+
+export type ConviteAssignmentInfo = {
+  presence_mode: PresenceMode | null;
+  horario_apresentacao: string | null;
+  is_driver: boolean;
+  cache_estimado: number | null;
+};
+
+/** Payload de resolve_link(). O `estado` discrimina o que mais vem junto. */
+export type LinkResolvido =
+  | { estado: "valido"; tipo: "cadastro"; colaborador: LinkColaboradorInfo }
+  | {
+      estado: "valido";
+      tipo: "convite";
+      colaborador: LinkColaboradorInfo;
+      festa: ConviteFestaInfo;
+      assignment: ConviteAssignmentInfo;
+    }
+  | { estado: Exclude<EstadoLink, "valido">; tipo?: LinkTipo };
 
 /** Rótulos de exibição (pt-BR). A lógica de cachê vive no banco (docs/01). */
 export const CARGO_LABEL: Record<CargoType, string> = {

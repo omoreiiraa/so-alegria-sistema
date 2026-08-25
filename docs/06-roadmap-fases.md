@@ -15,10 +15,10 @@
 - [x] Seed (party_types) + bucket de estoque
 - [x] Tipos TS gerados do schema
 - [x] Auth: e-mail/senha + Google + custom claim `role` (guarda por layout)
-- [x] Middleware: renovação de sessão + guarda de rotas /app e /admin
+- [x] Middleware: renovação de sessão + guarda de /admin e rate limit das rotas de token
 - [ ] Rate limit (Upstash) no middleware — pendente (chaves)
 - [ ] OTP de e-mail via Resend (config SMTP no Supabase) — pendente (chaves)
-- [x] Cascas de UI: landing, auth (login/cadastro/verificar/esqueci), shell colaborador (bottom tabs), shell admin (sidebar) + dashboard
+- [x] Cascas de UI: landing, auth (login/esqueci), shell admin (sidebar) + dashboard
 - [ ] Repositório GitHub privado + deploy Vercel
 
 ## Fase 1 — Colaborador core
@@ -34,7 +34,7 @@
 - [x] Kanban (colunas de status) + Calendário (mês) com toggle
 - [x] CRUD colaboradores (lista, pendentes x equipe)
 - [x] Aprovar cadastro, alterar cargo, definir nome de tio, desativar/reativar
-- [x] Escalar colaboradores (busca, disponibilidade na data, alerta de outra festa no dia)
+- [x] Escalar colaboradores (busca, alerta de outra festa no dia)
 - [x] Definir por assignment: modo apresentação, horário, motorista, cachê custom
 - [x] Fluxo convite → confirmar/recusar/cancelar (colaborador)
 - [x] Notificações no painel (sino/badge + marcar lida); e-mail (Resend) pendente
@@ -77,3 +77,18 @@
 - [ ] 8. Item levado reduz disponível; retorna após conferência; perda ajusta total
 - [ ] 9. Cliente não altera role/cargo/pagamento (erro de policy)
 - [ ] 10. Veículo em rodízio na data exibe alerta
+
+## Fase 7 — Colaborador sem login (concluída em 2026-08-25)
+
+- [x] `profiles` desacoplada de `auth.users` (`id` próprio; `user_id` só para admin)
+- [x] Área `/app`, autocadastro e disponibilidade removidos
+- [x] Tabela `colaborador_links` + RPCs de token (`resolve`, `cadastro`, `convite`)
+- [x] Páginas públicas `/cadastro/[token]` e `/convite/[token]`
+- [x] Painel: criar colaborador, gerar/copiar link e abrir WhatsApp
+- [x] Convite de 24h gerado junto com a escalação
+- [x] Página `/admin/conta` para troca de senha do admin
+
+**Fora de escopo (decidido):** disponibilidade do colaborador e envio automático de WhatsApp
+(ver ADR-0015 — depende da Business API, com custo por conversa).
+
+**Pendências:** limpar as contas órfãs em `auth.users` que não são de admin.

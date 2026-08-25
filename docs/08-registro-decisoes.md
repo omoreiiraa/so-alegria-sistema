@@ -112,3 +112,52 @@ sistema, como o próprio modelo prevê em "Meio de confirmação".
 (aceita/recusada), data-hora e meio de confirmação. A RLS já permite o colaborador **ler**
 a OS das próprias escalações, deixando o caminho aberto caso o aceite in-app seja pedido
 depois.
+
+### ADR-0012 — Colaborador deixa de ser usuário do sistema
+**Data:** 2026-08-25
+**Contexto:** O colaborador tinha conta no Supabase Auth, senha/OTP e uma área própria
+(`/app`) com escala, disponibilidade, pagamentos e perfil. Na prática o contato com o
+tio/tia sempre foi por WhatsApp, e manter login para quem entra duas vezes por mês
+custava suporte (senha esquecida, e-mail não confirmado) sem entregar nada em troca.
+**Decisão:** O colaborador **não é mais usuário**. O admin cria a ficha e envia links
+tokenizados por WhatsApp; fora deles, o colaborador não alcança nenhuma tela.
+`profiles` ganhou `id` próprio e `user_id` virou opcional — só o admin tem conta.
+**Consequência:** `/app` e o autocadastro foram removidos; as policies que liberavam
+leitura ao dono viraram admin-only; `availability` foi apagada junto com a tela de
+disponibilidade. A FK `profiles.user_id → auth.users` passou de `CASCADE` para
+`SET NULL`, para apagar uma conta de admin não levar a ficha junto.
+**Migração:** `0017_colaborador_sem_login`. As contas órfãs em `auth.users` ficam para
+limpeza manual.
+
+### ADR-0013 — Links tokenizados: hash no banco, validação no Postgres
+**Data:** 2026-08-25
+**Contexto:** Duas rotas passam a ser públicas (`/cadastro/[token]`, `/convite/[token]`) e
+carregam dados pessoais e o cachê. Precisam ser seguras sem sessão.
+**Decisão:** Token de 256 bits (`randomBytes(32)`, base64url). O banco guarda **apenas o
+sha256** — um vazamento do dump não devolve links utilizáveis, e o token em claro só existe
+no retorno da action que o cria. Expiração, uso único e revogação são checados **dentro do
+RPC**, com `select … for update`, então dois cliques simultâneos não confirmam duas vezes.
+Nenhuma policy nova para `anon`: as funções são concedidas só a `service_role` e chamadas do
+servidor. Rate limit de 20 req/min por IP nas rotas de token, contra varredura.
+**Consequência:** o admin não consegue reexibir um link já gerado — só gerar outro, o que
+revoga o anterior. É o preço de não guardar o token.
+
+### ADR-0014 — Remoção do trigger `prevent_sensitive_profile_update`
+**Data:** 2026-08-25
+**Contexto:** O trigger barrava alteração de `rg`, `cpf`, `cargo`, `role` e `aprovado` por
+quem não fosse admin. Com o cadastro por token, a escrita acontece num RPC que roda **sem
+`auth.uid()`** — o trigger bloquearia o próprio formulário que ele deveria proteger.
+**Decisão:** Removido. A proteção virou redundante: só o admin escreve em `profiles` (via
+RLS) e o RPC de cadastro, que valida o token antes.
+**Consequência:** se algum dia o colaborador voltar a ter sessão, essa proteção precisa
+ser reintroduzida — provavelmente como policy de coluna, não trigger.
+
+### ADR-0015 — Envio do WhatsApp é manual
+**Data:** 2026-08-25
+**Contexto:** O convite e o cadastro precisam chegar no WhatsApp do colaborador.
+**Decisão:** O sistema gera o link e abre o `wa.me` com a mensagem pronta; **quem envia é o
+admin**, do próprio WhatsApp. Envio automático exigiria a WhatsApp Business API — conta Meta
+aprovada, número dedicado, modelos homologados e custo por conversa — o que quebra o
+princípio de operar em free tier na v1.
+**Consequência:** nada é enviado sem alguém clicar. Se o volume crescer, a API entra como
+substituição do botão, sem mudar o modelo de links.

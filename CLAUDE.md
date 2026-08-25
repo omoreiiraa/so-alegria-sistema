@@ -8,10 +8,13 @@
 ## 1. O que é este projeto
 
 **Sistema de Gestão de Recreação Infantil** para a empresa **Só Alegria — Recreação e Discoteca**.
-Plataforma web single-tenant com dois perfis:
+Plataforma web single-tenant. **Só o admin tem conta e faz login.**
 
-- **Colaborador** (`/app`) — freelancer ("tio/tia"). Mobile-first, PWA. Vê escala, confirma festas, marca disponibilidade e acompanha pagamentos.
 - **Admin** (`/admin`) — escritório (3 pessoas). Desktop-first. Gere festas (kanban + calendário), colaboradores, pagamentos, frota, buffets e estoque.
+- **Colaborador** — freelancer ("tio/tia"). **Não tem login nem área própria.** Alcança o
+  sistema por dois links tokenizados enviados no WhatsApp:
+  - `/cadastro/[token]` — preenche os próprios dados, uma vez (link vale até ser usado).
+  - `/convite/[token]` — aceita ou recusa uma festa (**expira em 24h**).
 
 A fonte da verdade do produto é [PRD-sistema-gestao-recreacao.md](PRD-sistema-gestao-recreacao.md).
 As regras detalhadas estão em [docs/](docs/). **Sempre** consulte a doc relevante antes de implementar.
@@ -70,7 +73,11 @@ Migrations de banco são aplicadas via **MCP do Supabase** (`apply_migration`) e
 5. **Snapshot de cachê:** ao confirmar assignment, congela-se `cargo_snapshot` e `cache_calculado`. Mudança de cargo não altera festas já confirmadas.
 6. **Datas/horas em `America/Sao_Paulo`; valores em BRL.** Nunca renderizar UTC cru ao usuário.
 7. **Validação dupla:** Zod (client+server) **e** constraints no banco (CPF, telefone E.164, CEP).
-8. **Colaborador nunca edita** cargo, nome de tio, RG, CPF. Só admin, via função.
+8. **Colaborador não é usuário do sistema.** Não tem linha em `auth.users`; `profiles.id` é
+   a identidade, e `profiles.user_id` só existe para admin.
+9. **Links tokenizados:** token de 256 bits, guardado **só como hash sha256**, uso único e
+   expiração checada no banco. As rotas públicas nunca tocam tabela direto — passam por
+   RPC `SECURITY DEFINER` chamado do servidor com service role. Ver `src/actions/links.ts`.
 
 ---
 
@@ -85,8 +92,8 @@ so-alegria/
 │   └── migrations/            # SQL versionado (espelha o que roda no projeto)
 ├── src/
 │   ├── app/
-│   │   ├── (auth)/            # login, cadastro, verificação OTP
-│   │   ├── (colaborador)/app/ # área do freelancer (mobile-first)
+│   │   ├── (auth)/            # login e recuperação de senha (só admin)
+│   │   ├── (publico)/         # cadastro/[token] e convite/[token] — sem sessão
 │   │   └── (admin)/admin/     # painel admin (desktop-first)
 │   ├── components/
 │   │   ├── ui/                # shadcn/ui
@@ -121,3 +128,4 @@ so-alegria/
 - `.env.local` (nunca commitado) guarda chaves. Ver `.env.example` para a lista.
 - Chaves públicas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (publishable).
 - Chaves privadas: `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `UPSTASH_*` — só no servidor / Vercel env.
+- **`SUPABASE_SERVICE_ROLE_KEY` é obrigatória**: sem ela as páginas públicas de link não abrem.

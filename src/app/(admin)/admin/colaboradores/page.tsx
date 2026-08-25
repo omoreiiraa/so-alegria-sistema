@@ -7,13 +7,15 @@ import { EmptyState } from "@/components/common/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ColaboradorActions } from "@/components/admin/colaborador-actions";
+import { NovoColaborador } from "@/components/admin/novo-colaborador";
 import { CARGO_LABEL } from "@/types/domain";
 import type { CargoType } from "@/types/domain";
 
 export const metadata: Metadata = { title: "Colaboradores" };
 
 type Colab = {
-  user_id: string;
+  id: string;
+  cadastro_preenchido: boolean;
   nome_completo: string | null;
   nome_tio: string | null;
   email: string | null;
@@ -30,7 +32,7 @@ function ColabCard({ c }: { c: Colab }) {
       <CardContent className="flex items-center justify-between gap-4 p-4">
         <div className="min-w-0">
           <p className="flex items-center gap-2 truncate font-medium">
-            {c.nome_completo ?? c.email}
+            {c.nome_completo ?? c.email ?? "Sem nome"}
             {c.nome_tio && (
               <span className="text-sm font-normal text-muted-foreground">
                 ({c.nome_tio})
@@ -38,19 +40,22 @@ function ColabCard({ c }: { c: Colab }) {
             )}
           </p>
           <p className="truncate text-sm text-muted-foreground">
-            {c.email}
+            {c.email ?? "aguardando cadastro"}
             {c.cidade ? ` · ${c.cidade}/${c.uf ?? ""}` : ""}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {!c.ativo && <Badge variant="secondary">Inativo</Badge>}
+          {!c.cadastro_preenchido && (
+            <Badge className="bg-laranja/15 text-laranja-escuro">Cadastro pendente</Badge>
+          )}
           {c.aprovado ? (
             <Badge variant="secondary">{CARGO_LABEL[c.cargo]}</Badge>
           ) : (
             <Badge className="bg-vermelho/10 text-vermelho">Pendente</Badge>
           )}
           <ColaboradorActions
-            userId={c.user_id}
+            profileId={c.id}
             aprovado={c.aprovado}
             ativo={c.ativo}
             cargo={c.cargo}
@@ -68,12 +73,15 @@ export default async function ColaboradoresPage() {
   const { data } = await supabase
     .from("profiles")
     .select(
-      "user_id, nome_completo, nome_tio, email, cargo, aprovado, ativo, cidade, uf",
+      "id, nome_completo, nome_tio, email, cargo, aprovado, ativo, cidade, uf, cpf",
     )
     .eq("role", "colaborador")
     .order("created_at", { ascending: false });
 
-  const colaboradores = (data ?? []) as Colab[];
+  // Sem CPF, o colaborador ainda não abriu o link de cadastro.
+  const colaboradores = ((data ?? []) as (Omit<Colab, "cadastro_preenchido"> & {
+    cpf: string | null;
+  })[]).map((c) => ({ ...c, cadastro_preenchido: c.cpf !== null }));
   const pendentes = colaboradores.filter((c) => !c.aprovado);
   const aprovados = colaboradores.filter((c) => c.aprovado);
 
@@ -81,25 +89,26 @@ export default async function ColaboradoresPage() {
     <div className="space-y-6">
       <PageHeader
         title="Colaboradores"
-        description="Aprove cadastros, defina cargo e nome de tio."
+        description="Crie a ficha, envie o link de cadastro e defina cargo e nome de tio."
+        action={<NovoColaborador />}
       />
 
       {colaboradores.length === 0 && (
         <EmptyState
           icon={<Users className="size-6" />}
           title="Nenhum colaborador ainda"
-          description="Quando alguém se cadastrar pelo app, aparecerá aqui para aprovação."
+          description="Clique em “Novo colaborador” para criar a ficha e enviar o link de cadastro."
         />
       )}
 
       {pendentes.length > 0 && (
         <section className="space-y-3">
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-vermelho">
-            Aguardando aprovação ({pendentes.length})
+            Aguardando cadastro/aprovação ({pendentes.length})
           </h2>
           <div className="grid gap-3 xl:grid-cols-2 2xl:grid-cols-3">
             {pendentes.map((c) => (
-              <ColabCard key={c.user_id} c={c} />
+              <ColabCard key={c.id} c={c} />
             ))}
           </div>
         </section>
@@ -112,7 +121,7 @@ export default async function ColaboradoresPage() {
           </h2>
           <div className="grid gap-3 xl:grid-cols-2 2xl:grid-cols-3">
             {aprovados.map((c) => (
-              <ColabCard key={c.user_id} c={c} />
+              <ColabCard key={c.id} c={c} />
             ))}
           </div>
         </section>

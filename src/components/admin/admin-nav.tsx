@@ -12,6 +12,7 @@ import {
   Package,
   Printer,
   FileText,
+  KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ export const adminNavItems = [
   { href: "/admin/veiculos", label: "Veículos", icon: Truck },
   { href: "/admin/parceiros", label: "Parceiros", icon: Building2 },
   { href: "/admin/estoque", label: "Estoque", icon: Package },
+  { href: "/admin/conta", label: "Minha conta", icon: KeyRound },
 ];
 
 export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {

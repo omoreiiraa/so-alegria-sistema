@@ -1,11 +1,11 @@
 # Só Alegria — Sistema de Gestão de Recreação
 
 Plataforma web da **Só Alegria — Recreação e Discoteca** para gerir a operação de festas
-infantis: escala, confirmação de festas, disponibilidade, pagamentos, frota, buffets parceiros
-e estoque.
+infantis: escala, confirmação de festas, pagamentos, frota, buffets parceiros e estoque.
 
-- **Colaborador** (`/app`) — freelancer, mobile-first (PWA): escala, confirmar/recusar, disponibilidade, pagamentos.
-- **Admin** (`/admin`) — escritório, desktop-first: festas (kanban/calendário), colaboradores, pagamentos, veículos, parceiros, estoque.
+- **Admin** (`/admin`) — escritório, desktop-first: festas (kanban/calendário), colaboradores, pagamentos, veículos, parceiros, estoque. Único perfil com login.
+- **Colaborador** — freelancer, sem conta. Recebe no WhatsApp um link de cadastro
+  (`/cadastro/[token]`) e, a cada escalação, um convite que expira em 24h (`/convite/[token]`).
 
 ## Stack
 

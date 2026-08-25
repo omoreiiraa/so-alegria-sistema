@@ -23,6 +23,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { FestaStatusControl } from "@/components/admin/festa-status-control";
 import { EscalarPanel } from "@/components/admin/escalar-panel";
 import { RemoverEscalado } from "@/components/admin/remover-escalado";
+import { ConviteLink } from "@/components/admin/convite-link";
 import { MateriaisFesta, type Material } from "@/components/admin/materiais-festa";
 import { GerarOrcamento } from "@/components/admin/gerar-orcamento";
 import { formatPhoneNational } from "@/lib/utils/phone";
@@ -84,8 +85,20 @@ type Assignment = {
   is_driver: boolean;
   cache_final: number | null;
   motivo_recusa: string | null;
-  user_id: string;
-  profiles: { nome_completo: string | null; nome_tio: string | null; cargo: CargoType } | null;
+  profile_id: string;
+  profiles: {
+    nome_completo: string | null;
+    nome_tio: string | null;
+    cargo: CargoType;
+    celular: string | null;
+  } | null;
+  colaborador_links: {
+    id: string;
+    expira_em: string | null;
+    usado_em: string | null;
+    revogado_em: string | null;
+    created_at: string;
+  }[];
 };
 
 function localFesta(f: Festa): string {
@@ -142,7 +155,6 @@ export default async function FestaDetailPage({
   const [
     { data: aData },
     { data: elegiveis },
-    { data: avail },
     { data: confl },
     { data: mData },
     { data: iData },
@@ -150,21 +162,21 @@ export default async function FestaDetailPage({
     supabase
       .from("party_assignments")
       .select(
-        `id, status, presence_mode, horario_apresentacao, is_driver, cache_final, motivo_recusa, user_id,
-           profiles ( nome_completo, nome_tio, cargo )`,
+        `id, status, presence_mode, horario_apresentacao, is_driver, cache_final, motivo_recusa, profile_id,
+           profiles ( nome_completo, nome_tio, cargo, celular ),
+           colaborador_links ( id, expira_em, usado_em, revogado_em, created_at )`,
       )
       .eq("party_id", id),
     supabase
       .from("profiles")
-      .select("user_id, nome_completo, nome_tio, cargo")
+      .select("id, nome_completo, nome_tio, cargo")
       .eq("role", "colaborador")
       .eq("aprovado", true)
       .eq("ativo", true)
       .neq("cargo", "pendente"),
-    supabase.from("availability").select("user_id").eq("data", festa.data),
     supabase
       .from("party_assignments")
-      .select("user_id, parties!inner(data)")
+      .select("profile_id, parties!inner(data)")
       .eq("parties.data", festa.data)
       .neq("party_id", id)
       .in("status", ["pendente", "confirmada"]),
@@ -194,25 +206,23 @@ export default async function FestaDetailPage({
   const festaRealizada = festa.status === "realizada" || festa.status === "paga";
 
   const assignments = (aData ?? []) as unknown as Assignment[];
-  const assignedIds = new Set(assignments.map((a) => a.user_id));
-  const availSet = new Set((avail ?? []).map((r) => r.user_id));
+  const assignedIds = new Set(assignments.map((a) => a.profile_id));
   const conflitoSet = new Set(
-    ((confl ?? []) as unknown as { user_id: string }[]).map((r) => r.user_id),
+    ((confl ?? []) as unknown as { profile_id: string }[]).map((r) => r.profile_id),
   );
 
   const eligible = ((elegiveis ?? []) as {
-    user_id: string;
+    id: string;
     nome_completo: string | null;
     nome_tio: string | null;
     cargo: CargoType;
   }[])
-    .filter((p) => !assignedIds.has(p.user_id))
+    .filter((p) => !assignedIds.has(p.id))
     .map((p) => ({
-      userId: p.user_id,
+      profileId: p.id,
       nome: p.nome_completo ?? p.nome_tio ?? "Colaborador",
       cargo: p.cargo,
-      disponivel: availSet.has(p.user_id),
-      conflito: conflitoSet.has(p.user_id),
+      conflito: conflitoSet.has(p.id),
     }));
 
   const carros = festa.party_vehicles
@@ -387,7 +397,7 @@ export default async function FestaDetailPage({
                 assignments.map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"
+                    className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-2 rounded-lg border border-border p-3"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">
@@ -419,6 +429,18 @@ export default async function FestaDetailPage({
                       {statusBadge(a.status)}
                       <RemoverEscalado assignmentId={a.id} partyId={id} />
                     </div>
+                    {a.status === "pendente" && (
+                      <div className="col-span-2">
+                      <ConviteLink
+                        assignmentId={a.id}
+                        partyId={id}
+                        nome={a.profiles?.nome_tio || a.profiles?.nome_completo || "Colaborador"}
+                        celular={a.profiles?.celular ?? null}
+                        data={festa.data}
+                        links={a.colaborador_links}
+                      />
+                      </div>
+                    )}
                   </div>
                 ))
               )}

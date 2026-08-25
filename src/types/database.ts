@@ -14,44 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      availability: {
+      colaborador_links: {
         Row: {
           created_at: string
-          data: string
+          created_by: string | null
+          expira_em: string | null
           id: string
-          periodo: string
-          updated_at: string
-          user_id: string
+          party_assignment_id: string | null
+          profile_id: string
+          revogado_em: string | null
+          tipo: Database["public"]["Enums"]["link_tipo"]
+          token_hash: string
+          usado_em: string | null
         }
         Insert: {
           created_at?: string
-          data: string
+          created_by?: string | null
+          expira_em?: string | null
           id?: string
-          periodo?: string
-          updated_at?: string
-          user_id: string
+          party_assignment_id?: string | null
+          profile_id: string
+          revogado_em?: string | null
+          tipo: Database["public"]["Enums"]["link_tipo"]
+          token_hash: string
+          usado_em?: string | null
         }
         Update: {
           created_at?: string
-          data?: string
+          created_by?: string | null
+          expira_em?: string | null
           id?: string
-          periodo?: string
-          updated_at?: string
-          user_id?: string
+          party_assignment_id?: string | null
+          profile_id?: string
+          revogado_em?: string | null
+          tipo?: Database["public"]["Enums"]["link_tipo"]
+          token_hash?: string
+          usado_em?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "availability_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "colaborador_links_party_assignment_id_fkey"
+            columns: ["party_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "party_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "colaborador_links_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
       notifications: {
         Row: {
-          actor_user_id: string | null
+          actor_profile_id: string | null
           corpo: string | null
           created_at: string
           id: string
@@ -61,7 +80,7 @@ export type Database = {
           titulo: string
         }
         Insert: {
-          actor_user_id?: string | null
+          actor_profile_id?: string | null
           corpo?: string | null
           created_at?: string
           id?: string
@@ -71,7 +90,7 @@ export type Database = {
           titulo: string
         }
         Update: {
-          actor_user_id?: string | null
+          actor_profile_id?: string | null
           corpo?: string | null
           created_at?: string
           id?: string
@@ -262,10 +281,10 @@ export type Database = {
           motivo_recusa: string | null
           party_id: string
           presence_mode: Database["public"]["Enums"]["presence_mode"] | null
+          profile_id: string
           respondido_em: string | null
           status: Database["public"]["Enums"]["assignment_status"]
           updated_at: string
-          user_id: string
           vehicle_id: string | null
         }
         Insert: {
@@ -280,10 +299,10 @@ export type Database = {
           motivo_recusa?: string | null
           party_id: string
           presence_mode?: Database["public"]["Enums"]["presence_mode"] | null
+          profile_id: string
           respondido_em?: string | null
           status?: Database["public"]["Enums"]["assignment_status"]
           updated_at?: string
-          user_id: string
           vehicle_id?: string | null
         }
         Update: {
@@ -298,10 +317,10 @@ export type Database = {
           motivo_recusa?: string | null
           party_id?: string
           presence_mode?: Database["public"]["Enums"]["presence_mode"] | null
+          profile_id?: string
           respondido_em?: string | null
           status?: Database["public"]["Enums"]["assignment_status"]
           updated_at?: string
-          user_id?: string
           vehicle_id?: string | null
         }
         Relationships: [
@@ -313,11 +332,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "party_assignments_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "party_assignments_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "party_assignments_vehicle_id_fkey"
@@ -503,10 +522,10 @@ export type Database = {
           pago_em: string | null
           pago_por: string | null
           payment_week_id: string
+          profile_id: string
           qtd_festas: number
           status: Database["public"]["Enums"]["payment_status"]
           updated_at: string
-          user_id: string
           valor_total: number
         }
         Insert: {
@@ -515,10 +534,10 @@ export type Database = {
           pago_em?: string | null
           pago_por?: string | null
           payment_week_id: string
+          profile_id: string
           qtd_festas?: number
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
-          user_id: string
           valor_total?: number
         }
         Update: {
@@ -527,10 +546,10 @@ export type Database = {
           pago_em?: string | null
           pago_por?: string | null
           payment_week_id?: string
+          profile_id?: string
           qtd_festas?: number
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
-          user_id?: string
           valor_total?: number
         }
         Relationships: [
@@ -542,11 +561,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payments_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "payments_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -564,6 +583,7 @@ export type Database = {
           cpf: string | null
           created_at: string
           email: string | null
+          id: string
           logradouro: string | null
           nome_completo: string | null
           nome_tio: string | null
@@ -572,7 +592,7 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"]
           uf: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           aprovado?: boolean
@@ -587,6 +607,7 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           email?: string | null
+          id?: string
           logradouro?: string | null
           nome_completo?: string | null
           nome_tio?: string | null
@@ -595,7 +616,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           uf?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           aprovado?: boolean
@@ -610,6 +631,7 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           email?: string | null
+          id?: string
           logradouro?: string | null
           nome_completo?: string | null
           nome_tio?: string | null
@@ -618,7 +640,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           uf?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -809,7 +831,7 @@ export type Database = {
       approve_user: {
         Args: {
           p_cargo: Database["public"]["Enums"]["cargo_type"]
-          p_user: string
+          p_profile: string
         }
         Returns: undefined
       }
@@ -826,49 +848,68 @@ export type Database = {
         }
         Returns: number
       }
-      cancel_assignment: {
-        Args: { p_assignment_id: string; p_motivo?: string }
-        Returns: undefined
-      }
-      create_service_order: {
-        Args: { p_assignment: string }
-        Returns: Database["public"]["Tables"]["service_orders"]["Row"]
-      }
       close_payment_week: {
         Args: { p_semana_inicio: string }
         Returns: undefined
       }
-      confirm_assignment: {
-        Args: { p_assignment_id: string }
-        Returns: undefined
+      create_service_order: {
+        Args: { p_assignment: string }
+        Returns: {
+          ano: number
+          arquivo_path: string | null
+          created_at: string
+          data_emissao: string
+          enviada_em: string | null
+          id: string
+          meio_confirmacao:
+            | Database["public"]["Enums"]["confirmation_method"]
+            | null
+          motivo_recusa: string | null
+          numero: number
+          observacoes: string | null
+          party_assignment_id: string
+          respondido_em: string | null
+          status: Database["public"]["Enums"]["service_order_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "service_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       is_admin: { Args: never; Returns: boolean }
-      is_assigned_to_party: { Args: { p_party: string }; Returns: boolean }
       mark_payment_paid: { Args: { p_payment_id: string }; Returns: undefined }
-      refuse_assignment: {
-        Args: { p_assignment_id: string; p_motivo?: string }
+      resolve_link: { Args: { p_token_hash: string }; Returns: Json }
+      responder_convite_by_token: {
+        Args: { p_aceita: boolean; p_motivo?: string; p_token_hash: string }
         Returns: undefined
       }
       set_nome_tio: {
-        Args: { p_nome: string; p_user: string }
+        Args: { p_nome: string; p_profile: string }
         Returns: undefined
       }
       set_user_active: {
-        Args: { p_ativo: boolean; p_user: string }
+        Args: { p_ativo: boolean; p_profile: string }
         Returns: undefined
       }
       set_user_cargo: {
         Args: {
           p_cargo: Database["public"]["Enums"]["cargo_type"]
-          p_user: string
+          p_profile: string
         }
         Returns: undefined
       }
       set_user_role: {
         Args: {
+          p_profile: string
           p_role: Database["public"]["Enums"]["user_role"]
-          p_user: string
         }
+        Returns: undefined
+      }
+      submit_cadastro_by_token: {
+        Args: { p_dados: Json; p_token_hash: string }
         Returns: undefined
       }
     }
@@ -881,7 +922,7 @@ export type Database = {
         | "experiente"
         | "coordenador"
       confirmation_method: "whatsapp" | "email" | "assinatura_fisica"
-      service_order_status: "rascunho" | "enviada" | "aceita" | "recusada"
+      link_tipo: "cadastro" | "convite"
       party_status:
         | "orcamento"
         | "fechada"
@@ -892,6 +933,7 @@ export type Database = {
         | "cancelada"
       payment_status: "aberto" | "pago"
       presence_mode: "na_empresa" | "direto_no_local"
+      service_order_status: "rascunho" | "enviada" | "aceita" | "recusada"
       stock_movement_type:
         | "entrada"
         | "saida_festa"
@@ -1036,6 +1078,8 @@ export const Constants = {
         "experiente",
         "coordenador",
       ],
+      confirmation_method: ["whatsapp", "email", "assinatura_fisica"],
+      link_tipo: ["cadastro", "convite"],
       party_status: [
         "orcamento",
         "fechada",
@@ -1047,7 +1091,6 @@ export const Constants = {
       ],
       payment_status: ["aberto", "pago"],
       presence_mode: ["na_empresa", "direto_no_local"],
-      confirmation_method: ["whatsapp", "email", "assinatura_fisica"],
       service_order_status: ["rascunho", "enviada", "aceita", "recusada"],
       stock_movement_type: [
         "entrada",

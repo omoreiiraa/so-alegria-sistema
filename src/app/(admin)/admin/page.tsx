@@ -52,7 +52,7 @@ interface TodayParty {
   party_assignments: {
     id: string;
     status: AssignmentStatus;
-    user_id: string;
+    profile_id: string;
     profiles: { nome_tio: string | null; nome_completo: string | null } | null;
   }[];
 }
@@ -103,7 +103,7 @@ export default async function AdminHome() {
       party_assignments (
         id,
         status,
-        user_id,
+        profile_id,
         profiles ( nome_tio, nome_completo )
       )
     `)

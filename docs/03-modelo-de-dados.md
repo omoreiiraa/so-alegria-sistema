@@ -1,7 +1,6 @@
 # 03 — Modelo de Dados
 
-> Convenções: toda tabela tem `id uuid default gen_random_uuid()` (exceto `profiles`, PK =
-> `user_id`), `created_at timestamptz default now()`, `updated_at timestamptz default now()`
+> Convenções: toda tabela tem `id uuid default gen_random_uuid()`, `created_at timestamptz default now()`, `updated_at timestamptz default now()`
 > (trigger de update). Enums nativos. Dinheiro em `numeric(10,2)`. RLS ligada em **todas**.
 
 Migrations versionadas em [`supabase/migrations/`](../supabase/migrations/) e aplicadas via MCP
@@ -27,10 +26,11 @@ create type stock_movement_type as enum ('entrada', 'saida_festa', 'devolucao', 
 
 ## Tabelas
 
-### `profiles` (1:1 com `auth.users`)
+### `profiles` (identidade própria; `user_id` só para admin)
 | Coluna | Tipo | Notas |
 |---|---|---|
-| `user_id` | uuid PK → auth.users | |
+| `id` | uuid PK | identidade do colaborador; referenciada por assignments e payments |
+| `user_id` | uuid null → auth.users (on delete set null) | **só admin tem**; colaborador não faz login |
 | `role` | user_role default `'colaborador'` | espelhado em `app_metadata` via trigger |
 | `cargo` | cargo_type default `'pendente'` | |
 | `nome_completo` | text | |
@@ -42,8 +42,16 @@ create type stock_movement_type as enum ('entrada', 'saida_festa', 'devolucao', 
 | `ativo` | boolean default true | soft delete |
 | `aprovado` | boolean default false | liberação pelo admin |
 
-### `availability`
-`id`, `user_id → profiles`, `data date`, `periodo text default 'dia_inteiro'`. **unique (user_id, data)**.
+### `colaborador_links`
+`id`, `tipo link_tipo ('cadastro'|'convite')`, `token_hash text unique` (**sha256 do token —
+nunca o token em claro**), `profile_id → profiles`, `party_assignment_id → party_assignments null`,
+`expira_em timestamptz null` (obrigatório em `convite`, 24h), `usado_em`, `revogado_em`,
+`created_at`, `created_by → auth.users null`. RLS admin-only; o acesso público passa só pelos
+RPCs `resolve_link`, `submit_cadastro_by_token` e `responder_convite_by_token`, concedidos
+apenas a `service_role`.
+
+> `availability` foi removida na migration 0017 — a tela de disponibilidade do colaborador
+> deixou de existir.
 
 ### `partners` (buffets)
 `id`, `nome`, campos de endereço (como profiles), `contato text null`, `observacoes text null`, `ativo boolean default true`.
@@ -80,7 +88,7 @@ create type stock_movement_type as enum ('entrada', 'saida_festa', 'devolucao', 
 |---|---|---|
 | `id` | uuid | |
 | `party_id` | → parties | |
-| `user_id` | → profiles | |
+| `profile_id` | → profiles(id) | |
 | `status` | assignment_status default `'pendente'` | |
 | `presence_mode` | presence_mode null | |
 | `horario_apresentacao` | time null | |
@@ -93,13 +101,13 @@ create type stock_movement_type as enum ('entrada', 'saida_festa', 'devolucao', 
 | `motivo_recusa` | text null | |
 | `respondido_em` | timestamptz null | |
 
-**unique (party_id, user_id)**.
+**unique (party_id, profile_id)**.
 
 ### `payment_weeks`
 `id`, `semana_inicio date` (segunda), `semana_fim date` (domingo). **unique (semana_inicio)**.
 
 ### `payments`
-`id`, `payment_week_id → payment_weeks`, `user_id → profiles`, `valor_total numeric`, `qtd_festas smallint`, `status payment_status default 'aberto'`, `pago_em timestamptz null`, `pago_por uuid null`. **unique (payment_week_id, user_id)**. Gerado por `close_payment_week`.
+`id`, `payment_week_id → payment_weeks`, `profile_id → profiles`, `valor_total numeric`, `qtd_festas smallint`, `status payment_status default 'aberto'`, `pago_em timestamptz null`, `pago_por uuid null`. **unique (payment_week_id, profile_id)**. Gerado por `close_payment_week`.
 
 ### `stock_items`
 `id`, `nome text`, `foto_url text null`, `quantidade_total int default 0`, `categoria text null`, `ativo boolean default true`.
@@ -135,7 +143,7 @@ Função: `create_service_order(p_assignment uuid) → service_orders` — **def
 numera com `pg_advisory_xact_lock` por ano.
 
 ### `notifications`
-`id`, `tipo text`, `titulo text`, `corpo text`, `party_id null`, `actor_user_id null`, `lida boolean default false`. Destinada aos **admins** (central compartilhada).
+`id`, `tipo text`, `titulo text`, `corpo text`, `party_id null`, `actor_profile_id null`, `lida boolean default false`. Destinada aos **admins** (central compartilhada).
 
 ---
 

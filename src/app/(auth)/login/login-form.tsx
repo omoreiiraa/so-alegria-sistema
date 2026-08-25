@@ -73,11 +73,8 @@ export function LoginForm({ next }: { next?: string }) {
 
       <GoogleButton />
 
-      <p className="pt-2 text-center text-sm text-muted-foreground">
-        Não tem conta?{" "}
-        <Link href="/cadastro" className="font-semibold text-verde-escuro hover:underline">
-          Criar agora
-        </Link>
+      <p className="pt-2 text-center text-xs text-muted-foreground">
+        Acesso restrito ao escritório.
       </p>
     </form>
   );

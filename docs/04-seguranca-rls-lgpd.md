@@ -20,53 +20,60 @@ recursiva dentro das policies de `profiles`.
 
 ## Matriz de acesso
 
-| Tabela | Colaborador | Admin |
+Desde a migration 0017 **o colaborador não tem sessão** (ver ADR-0012): não existe papel
+"colaborador" no banco. Toda policy é admin-only, e o acesso do tio/tia acontece fora da RLS,
+por RPC validado por token.
+
+| Tabela | `anon` / colaborador | Admin (`authenticated` + `is_admin()`) |
 |---|---|---|
-| `profiles` | SELECT/UPDATE **só a própria linha**; colunas `role, cargo, nome_tio, aprovado, rg, cpf` **bloqueadas** para UPDATE (trigger/coluna-check) | ALL |
-| `availability` | ALL nas **próprias** linhas | SELECT |
-| `parties` | SELECT **só festas onde tem assignment** | ALL |
-| `party_assignments` | SELECT nas próprias; **UPDATE só via** `confirm/refuse/cancel` (funções) | ALL |
-| `party_vehicles` | SELECT se pertence a festa sua | ALL |
-| `payments`, `payment_weeks` | SELECT nas próprias | ALL |
-| `partners`, `vehicles`, `party_types` | SELECT limitado ao necessário (ex.: veículo vinculado à sua festa) | ALL |
+| `profiles` | **sem acesso** | ALL |
+| `parties`, `party_assignments`, `party_vehicles` | **sem acesso** | ALL |
+| `payments`, `payment_weeks` | **sem acesso** | ALL |
+| `partners`, `vehicles`, `party_types` | **sem acesso** | ALL |
 | `stock_items`, `party_stock_items`, `stock_movements` | **sem acesso** | ALL |
 | `notifications` | **sem acesso** | ALL |
+| `colaborador_links` | **sem acesso** | ALL |
+| `service_orders` | **sem acesso** | ALL |
+
+## Acesso público por token
+
+As rotas `/cadastro/[token]` e `/convite/[token]` não têm sessão. O caminho é sempre o mesmo:
+
+1. O servidor calcula o **sha256** do token da URL (o token em claro nunca vai ao banco).
+2. Chama um RPC `SECURITY DEFINER` com o client de **service role** — `resolve_link` (leitura),
+   `submit_cadastro_by_token` ou `responder_convite_by_token` (escrita).
+3. O RPC valida expiração, uso e revogação com `select … for update` e **queima o link** na
+   mesma transação, então duplo clique não confirma duas vezes.
+
+Essas três funções são concedidas **apenas a `service_role`** — `anon` e `authenticated` têm
+`EXECUTE` revogado, e nenhuma policy nova foi aberta para `anon`. O middleware aplica rate
+limit de 20 req/min por IP nessas rotas.
+
+> **Cuidado ao recriar funções:** `create or replace` devolve `EXECUTE` ao `public` por padrão.
+> Toda migration que recria uma RPC precisa repetir os `revoke`/`grant` (foi o que a 0018
+> corrigiu depois da 0017).
 
 ## Regras adicionais
 
 1. **Nenhuma escrita direta** do client em `role`, `cargo`, `cache_*`, `payments`. Só via funções
    `SECURITY DEFINER` com checagem interna (`if not is_admin() then raise exception`).
-2. **Colunas sensíveis de `profiles`** (role, cargo, nome_tio, aprovado, rg, cpf): trigger
-   `prevent_sensitive_update` bloqueia alteração pelo próprio dono; só funções admin passam.
-3. **Service role key** nunca no client; só em Server Actions/Edge Functions.
-4. **Storage** (bucket `estoque`): escrita **admin-only**; leitura preferencialmente por **signed URLs**.
-5. Funções que confirmam/recusam validam `auth.uid() = owner` antes de agir.
+2. **Service role key** nunca no client; só em Server Actions/Edge Functions.
+3. **Storage** (bucket `estoque`): escrita **admin-only**; leitura preferencialmente por **signed URLs**.
+4. O trigger `prevent_sensitive_profile_update` foi removido na 0017 (ver ADR-0014): ele
+   bloquearia o próprio cadastro por token, que roda sem `auth.uid()`. Se o colaborador voltar
+   a ter sessão, a proteção precisa ser reintroduzida.
 
 ## Exemplo de policies (referência)
 
 ```sql
--- profiles: dono lê/edita a própria linha; admin tudo
-create policy profiles_select_own on profiles
-  for select using (user_id = auth.uid() or is_admin());
-create policy profiles_update_own on profiles
-  for update using (user_id = auth.uid() or is_admin());
-
--- parties: colaborador só vê festas onde está escalado
-create policy parties_select_scoped on parties
-  for select using (
-    is_admin() or exists (
-      select 1 from party_assignments a
-      where a.party_id = parties.id and a.user_id = auth.uid()
-    )
-  );
-
--- party_assignments: dono lê a sua; escrita de status só via função (revogar update direto)
-create policy assignments_select_own on party_assignments
-  for select using (user_id = auth.uid() or is_admin());
+-- Tudo admin-only. is_admin() lê o custom claim, sem subquery recursiva.
+create policy profiles_select on profiles
+  for select to authenticated using ((select is_admin()));
+create policy profiles_update on profiles
+  for update to authenticated
+  using ((select is_admin())) with check ((select is_admin()));
 ```
 
-> Colaborador **não** recebe policy de UPDATE em `party_assignments`: a mudança de status passa
-> obrigatoriamente pelas funções `confirm/refuse/cancel_assignment` (definer), que checam ownership.
 
 ## Rate limiting e proteção
 
@@ -88,7 +95,7 @@ create policy assignments_select_own on party_assignments
 
 - [ ] `get_advisors` (security) sem erros críticos.
 - [ ] Toda tabela com RLS habilitada e policies revisadas.
-- [ ] Teste automatizado: colaborador A não lê nada de B (nenhuma rota/query).
+- [ ] Teste automatizado: `anon` não lê nada de nenhuma tabela nem executa as RPCs de token.
 - [ ] Teste: cliente não consegue alterar `role`/`cargo`/`payments` (erro de policy).
 - [ ] Service role nunca referenciada em código client (`NEXT_PUBLIC_*` não contém segredo).
 - [ ] Storage bucket sem leitura pública indevida.

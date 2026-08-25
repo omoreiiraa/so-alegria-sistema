@@ -9,8 +9,9 @@ perda de informação e retrabalho. Este sistema centraliza tudo numa plataforma
 
 ## Objetivo do produto
 
-- **Freelancer:** ver escala, confirmar/recusar festas, marcar disponibilidade, acompanhar pagamentos.
 - **Admin:** gerir festas (kanban + calendário), colaboradores, pagamentos, frota, buffets parceiros e estoque.
+- **Freelancer:** confirmar ou recusar a festa e preencher o próprio cadastro — sempre por
+  link enviado no WhatsApp, sem conta e sem app. Ver [ADR-0012](08-registro-decisoes.md).
 
 ## Não-objetivos (v1)
 

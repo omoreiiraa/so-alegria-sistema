@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Só Alegria",
     description:
       "Escala, confirmação de festas, disponibilidade e pagamentos da equipe Só Alegria.",
-    start_url: "/app",
+    start_url: "/admin",
     scope: "/",
     display: "standalone",
     orientation: "portrait",

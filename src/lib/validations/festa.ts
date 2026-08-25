@@ -37,7 +37,7 @@ export type FestaInput = z.infer<typeof festaSchema>;
 
 export const escalaSchema = z.object({
   party_id: z.string().uuid(),
-  user_id: z.string().uuid(),
+  profile_id: z.string().uuid(),
   presence_mode: z.enum(["na_empresa", "direto_no_local"]),
   horario_apresentacao: z.string().regex(HORA, "Horário inválido").nullable().optional(),
   is_driver: z.boolean().optional().default(false),

@@ -47,14 +47,15 @@ Usar `@supabase/ssr` para cookies/sessão no App Router.
 
 ## Auth
 
-- **Provedores:** e-mail/senha, Google OAuth, OTP de verificação de e-mail (SMTP Resend no Supabase).
+- **Quem tem conta:** só o admin. O colaborador não existe em `auth.users` (ADR-0012).
+- **Provedores:** e-mail/senha e Google OAuth.
 - **Custom claim `role`:** trigger grava `role` em `app_metadata` do usuário → lido via `auth.jwt()`
   nas policies (evita subquery recursiva). Ver [04](04-seguranca-rls-lgpd.md).
 - **Guarda de rotas:** `middleware.ts` valida sessão e redireciona:
-  - não logado → `/login`
-  - `pendente`/não aprovado → `/app/aguardando-aprovacao`
-  - `colaborador` tentando `/admin` → bloqueio
-  - `admin` → libera `/admin`
+  - não logado em `/admin/*` → `/login`
+  - logado sem `role = admin` → recusado no login e deslogado
+  - `/cadastro/[token]` e `/convite/[token]` passam **sem sessão** (validação por token no
+    banco), com rate limit de 20 req/min por IP
 
 ## Integrações
 

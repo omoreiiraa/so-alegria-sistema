@@ -20,7 +20,7 @@ export default function EsqueciSenhaPage() {
     const supabase = createClient();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
     await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${siteUrl}/auth/callback?next=/app/perfil`,
+      redirectTo: `${siteUrl}/auth/callback?next=/admin/conta`,
     });
     setEnviado(true);
     setLoading(false);
