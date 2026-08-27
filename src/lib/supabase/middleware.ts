@@ -3,8 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 
 /**
- * Renova a sessão em cada request e protege as áreas /app e /admin.
- * A checagem fina de role/aprovação ocorre nos layouts (server components).
+ * Renova a sessão em cada request e protege /admin — a única área com login.
+ * As rotas públicas de token (/cadastro/*, /convite/*) passam livres; quem valida
+ * é o RPC no banco. A checagem de role ocorre nos layouts (server components).
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -36,19 +37,17 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const protectedArea =
-    pathname.startsWith("/app") || pathname.startsWith("/admin");
 
-  if (!user && protectedArea) {
+  if (!user && pathname.startsWith("/admin")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 
-  if (user && (pathname === "/login" || pathname === "/cadastro")) {
+  if (user && pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = user.app_metadata?.role === "admin" ? "/admin" : "/app";
+    url.pathname = "/admin";
     return NextResponse.redirect(url);
   }
 

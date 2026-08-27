@@ -28,13 +28,13 @@ import {
 const CARGOS: CargoType[] = ["trainee", "junior", "experiente", "coordenador"];
 
 export function ColaboradorActions({
-  userId,
+  profileId,
   aprovado,
   ativo,
   cargo,
   nomeTio,
 }: {
-  userId: string;
+  profileId: string;
   aprovado: boolean;
   ativo: boolean;
   cargo: CargoType;
@@ -55,12 +55,12 @@ export function ColaboradorActions({
     startTransition(async () => {
       let err: string | undefined;
       if (!aprovado) {
-        err = (await aprovarColaborador(userId, sel)).error;
+        err = (await aprovarColaborador(profileId, sel)).error;
       } else if (sel !== cargo) {
-        err = (await definirCargo(userId, sel)).error;
+        err = (await definirCargo(profileId, sel)).error;
       }
       if (!err && nome.trim() !== (nomeTio ?? "")) {
-        err = (await definirNomeTio(userId, nome)).error;
+        err = (await definirNomeTio(profileId, nome)).error;
       }
       if (err) toast.error(err);
       else {
@@ -72,7 +72,7 @@ export function ColaboradorActions({
 
   function toggleAtivo() {
     startTransition(async () => {
-      const res = await definirAtivo(userId, !ativo);
+      const res = await definirAtivo(profileId, !ativo);
       if (res.error) toast.error(res.error);
       else {
         toast.success(ativo ? "Colaborador desativado." : "Colaborador reativado.");

@@ -2,11 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { cadastroSchema, loginSchema } from "@/lib/validations/auth";
-import { toE164 } from "@/lib/utils/phone";
-import { onlyDigits } from "@/lib/utils/cpf";
-import { onlyDigitsCep } from "@/lib/utils/cep";
-import { onlyRg } from "@/lib/utils/rg";
+import { loginSchema, senhaSchema } from "@/lib/validations/auth";
 
 export type ActionState = { error?: string } | undefined;
 
@@ -35,64 +31,26 @@ export async function login(
     return { error: "E-mail ou senha incorretos." };
   }
 
+  if (data.user?.app_metadata?.role !== "admin") {
+    await supabase.auth.signOut();
+    return { error: "Esta conta não tem acesso ao painel." };
+  }
+
   const next = formData.get("next") as string | null;
   if (next) redirect(next);
-  redirect(data.user?.app_metadata?.role === "admin" ? "/admin" : "/app");
+  redirect("/admin");
 }
 
-export async function cadastrar(
-  _prev: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  const raw = Object.fromEntries(formData.entries());
-  const parsed = cadastroSchema.safeParse(raw);
+/** Troca a senha do admin logado (usada após o link de recuperação). */
+export async function atualizarSenha(input: unknown) {
+  const parsed = senhaSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
   }
-  const d = parsed.data;
-  const celular = toE164(d.celular);
-  if (!celular) return { error: "Celular inválido (inclua o DDD)." };
-
   const supabase = await createClient();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
-  const { data, error } = await supabase.auth.signUp({
-    email: d.email,
-    password: d.senha,
-    options: {
-      emailRedirectTo: `${siteUrl}/auth/callback?next=/app`,
-      data: {
-        nome_completo: d.nome_completo,
-        rg: onlyRg(d.rg),
-        cpf: onlyDigits(d.cpf),
-        celular,
-        cep: onlyDigitsCep(d.cep),
-        logradouro: d.logradouro,
-        numero: d.numero,
-        complemento: d.complemento ?? "",
-        bairro: d.bairro,
-        cidade: d.cidade,
-        uf: d.uf.toUpperCase(),
-        chave_pix: d.chave_pix,
-      },
-    },
-  });
-
-  if (error) {
-    if (error.message.toLowerCase().includes("already registered")) {
-      return { error: "Já existe uma conta com este e-mail." };
-    }
-    if (error.message.toLowerCase().includes("cpf")) {
-      return { error: "Este CPF já está cadastrado." };
-    }
-    return { error: "Não foi possível concluir o cadastro. Tente novamente." };
-  }
-
-  // Se a confirmação de e-mail estiver desativada, o signup já retorna sessão ativa.
-  if (data.session) {
-    redirect("/app");
-  }
-  redirect(`/verificar-email?email=${encodeURIComponent(d.email)}`);
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.senha });
+  if (error) return { error: "Não foi possível trocar a senha." };
+  return { ok: true };
 }
 
 export async function logout() {

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Search, CheckCircle2, AlertTriangle, UserPlus } from "lucide-react";
+import { Search, AlertTriangle, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,10 +22,9 @@ import { CARGO_LABEL, PRESENCE_MODE_LABEL } from "@/types/domain";
 import type { CargoType, PresenceMode } from "@/types/domain";
 
 type Eligible = {
-  userId: string;
+  profileId: string;
   nome: string;
   cargo: CargoType;
-  disponivel: boolean;
   conflito: boolean;
 };
 
@@ -53,7 +52,7 @@ export function EscalarPanel({
 
   const filtrados = eligible
     .filter((e) => e.nome.toLowerCase().includes(query.toLowerCase()))
-    .sort((a, b) => Number(b.disponivel) - Number(a.disponivel));
+    .sort((a, b) => Number(a.conflito) - Number(b.conflito));
 
   function abrir(e: Eligible) {
     setSel(e);
@@ -69,7 +68,7 @@ export function EscalarPanel({
     startTransition(async () => {
       const res = await escalarColaborador({
         party_id: festaId,
-        user_id: sel.userId,
+        profile_id: sel.profileId,
         presence_mode: presence,
         horario_apresentacao: horario || null,
         is_driver: driver,
@@ -78,7 +77,12 @@ export function EscalarPanel({
       });
       if (res?.error) toast.error(res.error);
       else {
-        toast.success(`${sel.nome} escalado(a)!`);
+        if (res?.url) {
+          await navigator.clipboard.writeText(res.url).catch(() => {});
+          toast.success(`${sel.nome} escalado(a)! Link do convite copiado.`);
+        } else {
+          toast.success(`${sel.nome} escalado(a)!`);
+        }
         setSel(null);
         router.refresh();
       }
@@ -105,7 +109,7 @@ export function EscalarPanel({
         <div className="space-y-2">
           {filtrados.map((e) => (
             <div
-              key={e.userId}
+              key={e.profileId}
               className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"
             >
               <div className="min-w-0">
@@ -114,11 +118,6 @@ export function EscalarPanel({
                   <Badge variant="secondary" className="text-xs">
                     {CARGO_LABEL[e.cargo]}
                   </Badge>
-                  {e.disponivel && (
-                    <Badge className="gap-1 bg-verde/15 text-verde-escuro">
-                      <CheckCircle2 className="size-3" /> Disponível
-                    </Badge>
-                  )}
                   {e.conflito && (
                     <Badge className="gap-1 bg-vermelho/10 text-vermelho">
                       <AlertTriangle className="size-3" /> Outra festa no dia
@@ -143,7 +142,8 @@ export function EscalarPanel({
           <DialogHeader>
             <DialogTitle>Escalar {sel?.nome}</DialogTitle>
             <DialogDescription>
-              Defina a apresentação e o veículo. O convite entra como pendente.
+              Defina a apresentação e o veículo. O link do convite é gerado em
+              seguida, para você enviar no WhatsApp.
             </DialogDescription>
           </DialogHeader>
 

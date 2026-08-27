@@ -33,7 +33,7 @@ export default async function AdminPagamentosPage({
     qtd_festas: number;
     status: "aberto" | "pago";
     pago_em: string | null;
-    user_id: string;
+    profile_id: string;
     profiles: { nome_completo: string | null; nome_tio: string | null; chave_pix: string | null } | null;
   }[] = [];
 
@@ -41,7 +41,7 @@ export default async function AdminPagamentosPage({
     const { data } = await supabase
       .from("payments")
       .select(
-        "id, valor_total, qtd_festas, status, pago_em, user_id, profiles ( nome_completo, nome_tio, chave_pix )",
+        "id, valor_total, qtd_festas, status, pago_em, profile_id, profiles ( nome_completo, nome_tio, chave_pix )",
       )
       .eq("payment_week_id", week.id);
     payments = (data ?? []) as unknown as typeof payments;
@@ -52,7 +52,7 @@ export default async function AdminPagamentosPage({
   if (payments.length > 0) {
     rows = payments.map((p) => ({
       paymentId: p.id,
-      userId: p.user_id,
+      userId: p.profile_id,
       nome: p.profiles?.nome_completo ?? "Colaborador",
       nomeTio: p.profiles?.nome_tio ?? null,
       chavePix: p.profiles?.chave_pix ?? null,
@@ -66,7 +66,7 @@ export default async function AdminPagamentosPage({
     const { data: elig } = await supabase
       .from("party_assignments")
       .select(
-        "user_id, cache_final, profiles ( nome_completo, nome_tio, chave_pix ), parties!inner ( data, status )",
+        "profile_id, cache_final, profiles ( nome_completo, nome_tio, chave_pix ), parties!inner ( data, status )",
       )
       .eq("status", "confirmada")
       .eq("parties.status", "realizada")
@@ -75,13 +75,13 @@ export default async function AdminPagamentosPage({
 
     const grp = new Map<string, PagamentoRow>();
     for (const e of (elig ?? []) as unknown as {
-      user_id: string;
+      profile_id: string;
       cache_final: number | null;
       profiles: { nome_completo: string | null; nome_tio: string | null; chave_pix: string | null } | null;
     }[]) {
-      const cur = grp.get(e.user_id) ?? {
+      const cur = grp.get(e.profile_id) ?? {
         paymentId: null,
-        userId: e.user_id,
+        userId: e.profile_id,
         nome: e.profiles?.nome_completo ?? "Colaborador",
         nomeTio: e.profiles?.nome_tio ?? null,
         chavePix: e.profiles?.chave_pix ?? null,
@@ -92,7 +92,7 @@ export default async function AdminPagamentosPage({
       };
       cur.qtd += 1;
       cur.valor += Number(e.cache_final ?? 0);
-      grp.set(e.user_id, cur);
+      grp.set(e.profile_id, cur);
     }
     rows = [...grp.values()];
   }

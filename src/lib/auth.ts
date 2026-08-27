@@ -33,19 +33,13 @@ export const getSessionProfile = cache(
   },
 );
 
-/** Exige sessão de colaborador aprovado; redireciona conforme o estado. */
-export async function requireColaborador(): Promise<SessionProfile> {
-  const session = await getSessionProfile();
-  if (!session) redirect("/login");
-  if (!session.profile.ativo) redirect("/login");
-  if (!session.profile.aprovado) redirect("/app/aguardando-aprovacao");
-  return session;
-}
-
-/** Exige sessão de admin; caso contrário redireciona. */
+/**
+ * Exige sessão de admin. É o único perfil com login: o colaborador não tem
+ * conta e só alcança o sistema pelos links tokenizados.
+ */
 export async function requireAdmin(): Promise<SessionProfile> {
   const session = await getSessionProfile();
   if (!session) redirect("/login");
-  if (session.profile.role !== "admin") redirect("/app");
+  if (session.profile.role !== "admin") redirect("/login");
   return session;
 }

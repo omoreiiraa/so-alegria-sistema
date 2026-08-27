@@ -53,7 +53,7 @@ src/
 
 ## Nomenclatura
 - Arquivos de componente: `PascalCase.tsx`. Utils/actions: `kebab-case.ts` ou `camelCase` de função.
-- Rotas: kebab-case em português (`/admin/veiculos`, `/app/disponibilidade`).
+- Rotas: kebab-case em português (`/admin/veiculos`, `/admin/ordens-servico`).
 - Colunas SQL: `snake_case` português.
 
 ## Estados de UI (obrigatório)

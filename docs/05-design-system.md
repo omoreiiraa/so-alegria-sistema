@@ -25,7 +25,7 @@ Extraída do logo (verde, vermelho, laranja/amarelo, piso xadrez preto/branco).
 
 **Semântica shadcn (mapeamento):**
 - `primary` → verde · `accent`/CTA festivo → laranja · `destructive` → vermelho · `warning` → amarelo.
-- App (`/app`): `background` = creme. Admin (`/admin`): `background` = branco/cinza-50 (mais sóbrio).
+- Páginas públicas de link: `background` = creme. Admin (`/admin`): branco/cinza-50 (mais sóbrio).
 
 **Regra de uso:** verde é a base; **laranja é o gesto** (uma cor de destaque por tela). Vermelho só
 para ação destrutiva/negativa e notificações. Amarelo em doses pequenas (badges). Nunca os quatro
@@ -60,13 +60,13 @@ Escala de tipo (base 16px): 12 · 14 · 16 · 18 · 20 · 24 · 30 · 36 · 48. 
 
 ## 5. Duas peles da mesma marca
 
-| | App `/app` (recreador) | Admin `/admin` (escritório) |
+| | Páginas de link (recreador) | Admin `/admin` (escritório) |
 |---|---|---|
-| Densidade | Espaçoso, 1 coluna | Denso, tabelas/kanban |
+| Densidade | Espaçoso, 1 coluna, mobile-first | Denso, tabelas/kanban |
 | Fundo | Creme quente | Branco/cinza-50 |
 | Cor | Verde + laranja vivos | Verde contido, muito neutro, accents pontuais |
-| Navegação | Bottom tabs: Escala · Disponibilidade · Pagamentos · Perfil | Sidebar: Festas · Colaboradores · Pagamentos · Veículos · Parceiros · Estoque |
-| Tom | Festivo, acolhedor ("Tio Léo, você tem 2 festas!") | Operacional, direto |
+| Navegação | **Nenhuma** — o colaborador entra pelo link, resolve e sai | Sidebar: Festas · Colaboradores · Pagamentos · Veículos · Parceiros · Estoque |
+| Tom | Festivo, acolhedor ("Léo, você foi escalado!") | Operacional, direto |
 
 ## 6. Componentes-chave (shadcn/ui)
 

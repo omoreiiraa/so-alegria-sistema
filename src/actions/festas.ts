@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { gerarConvite } from "@/actions/links";
 import { festaSchema, escalaSchema } from "@/lib/validations/festa";
 import { onlyDigitsCep } from "@/lib/utils/cep";
 import { toE164 } from "@/lib/utils/phone";
@@ -127,30 +128,35 @@ export async function excluirFesta(id: string) {
 }
 
 export async function escalarColaborador(input: unknown) {
-  console.log("escalarColaborador input received:", input);
   const parsed = escalaSchema.safeParse(input);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     const path = issue?.path.join(".") ?? "unknown";
     const msg = issue?.message ?? "Dados inválidos";
-    console.error(`Validation error in ${path}: ${msg}`);
     return { error: `Campo [${path}]: ${msg}` };
   }
   const d = parsed.data;
   const supabase = await createClient();
-  const { error } = await supabase.from("party_assignments").insert({
-    party_id: d.party_id,
-    user_id: d.user_id,
-    presence_mode: d.presence_mode,
-    horario_apresentacao: d.horario_apresentacao ?? null,
-    is_driver: d.is_driver ?? false,
-    vehicle_id: d.vehicle_id ?? null,
-    cache_custom: d.cache_custom ?? null,
-  });
-  if (error) {
-    if (error.code === "23505") return { error: "Este colaborador já está escalado." };
+  const { data: criado, error } = await supabase
+    .from("party_assignments")
+    .insert({
+      party_id: d.party_id,
+      profile_id: d.profile_id,
+      presence_mode: d.presence_mode,
+      horario_apresentacao: d.horario_apresentacao ?? null,
+      is_driver: d.is_driver ?? false,
+      vehicle_id: d.vehicle_id ?? null,
+      cache_custom: d.cache_custom ?? null,
+    })
+    .select("id")
+    .single();
+  if (error || !criado) {
+    if (error?.code === "23505") return { error: "Este colaborador já está escalado." };
     return { error: "Não foi possível escalar." };
   }
+
+  // O convite de 24h nasce junto com a escalação: o admin só precisa enviá-lo.
+  const convite = await gerarConvite(criado.id, d.party_id);
 
   // avança a festa para 'escalada' quando ainda está 'fechada'
   const { data: festa } = await supabase
@@ -164,7 +170,7 @@ export async function escalarColaborador(input: unknown) {
 
   revalidatePath(`/admin/festas/${d.party_id}`);
   revalidatePath("/admin/festas");
-  return { ok: true };
+  return "error" in convite ? { ok: true } : { ok: true, url: convite.url };
 }
 
 export async function removerEscalado(assignmentId: string, partyId: string) {
