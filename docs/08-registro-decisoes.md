@@ -28,7 +28,7 @@ lido por `is_admin()` nas policies — evita subquery recursiva em `profiles`.
 ### ADR-0003 — Supabase Auth na v1 (não backend próprio)
 **Data:** 2026-07-02
 **Contexto:** Free tier, time pequeno, prazo. PRD prevê evolução futura para backend próprio.
-**Decisão:** Usar Supabase Auth (e-mail/senha, Google, OTP) com SMTP Resend.
+**Decisão:** Usar Supabase Auth (e-mail/senha) com SMTP Resend. (Google e OTP removidos — ADR-0016.)
 **Consequência:** Rápido e barato. Migração futura possível (auth desacoplada por interface).
 
 ---
@@ -161,3 +161,44 @@ aprovada, número dedicado, modelos homologados e custo por conversa — o que q
 princípio de operar em free tier na v1.
 **Consequência:** nada é enviado sem alguém clicar. Se o volume crescer, a API entra como
 substituição do botão, sem mudar o modelo de links.
+
+### ADR-0016 — Só e-mail/senha, sem Google OAuth e sem página de apresentação
+**Data:** 2026-08-26
+**Contexto:** Com o colaborador fora do sistema (ADR-0012), sobraram três contas de
+escritório. O botão "Entrar com Google" servia ao autocadastro, que não existe mais, e a
+landing page `/` vendia o produto para um público que nunca vai chegar por ali.
+**Decisão:** Removido o provedor Google do login (`components/auth/google-button.tsx`
+apagado) e a landing page trocada por um `redirect("/login")`. As contas de admin são
+criadas manualmente no painel do Supabase.
+**Consequência:** o único caminho de entrada é e-mail/senha, o que reduz a superfície de
+auth a uma coisa só. O provedor Google pode ser desabilitado também no painel do Supabase.
+Quem já tem sessão continua caindo em `/admin`, porque o middleware redireciona `/login`.
+
+### ADR-0017 — Exclusão de colaborador só sem histórico
+**Data:** 2026-08-26
+**Contexto:** Só havia "desativar". Faltava apagar de vez fichas criadas por engano ou
+que nunca viraram nada. O risco: as três FKs para `profiles(id)` são `on delete cascade`,
+então um `delete` cru levaria `party_assignments` e `payments` junto — histórico
+financeiro sumindo em silêncio.
+**Decisão:** RPC `delete_colaborador(uuid)` `SECURITY DEFINER`, só admin, que conta
+escalas e pagamentos antes e **recusa a exclusão** se houver qualquer um, devolvendo a
+contagem na mensagem. Sem histórico, apaga a ficha (os `colaborador_links` caem por
+cascade). Quem tem histórico continua sendo desativado.
+**Consequência:** o admin nunca consegue apagar histórico de pagamento pela UI. Se um dia
+for preciso remover alguém com histórico (LGPD, por exemplo), o caminho é anonimizar os
+campos pessoais mantendo a linha — não excluir.
+
+### ADR-0018 — Link de cadastro reutilizável para atualização cadastral
+**Data:** 2026-08-26
+**Contexto:** O cadastro mudava só uma vez, no onboarding. Mas o colaborador troca de
+número, de chave PIX e de endereço, e o escritório precisava de um jeito de corrigir isso.
+**Decisão:** Dois caminhos, e nenhum deles é o colaborador ter login. (a) O admin edita a
+ficha direto no painel — Server Action com whitelist de colunas cadastrais; `role`,
+`cargo`, `aprovado` e `ativo` continuam só nas RPCs `SECURITY DEFINER`. (b) O admin gera
+um link de cadastro novo mesmo com a ficha preenchida; `resolve_link` passou a devolver os
+dados atuais, então o formulário abre preenchido e o colaborador só corrige o que mudou.
+**Consequência:** o link de cadastro carrega dado pessoal (RG, CPF, endereço) na resposta.
+É o dado do próprio titular, atrás de um token de 256 bits, de uso único e revogável — e
+`resolve_link` só devolve o bloco `cadastro` enquanto o link vale: queimado, expirado ou
+revogado, volta nulo. Ainda assim, um link vazado passa a expor mais do que antes; o
+contrapeso é o admin revogar pelo painel.

@@ -153,13 +153,15 @@ numera com `pg_advisory_xact_lock` por ano.
 |---|---|---|
 | `cache_base(cargo cargo_type) → numeric` | stable | Tabela de cachê base por cargo |
 | `calc_cache(cargo, duracao_horas, is_viagem, is_driver) → numeric` | immutable | Regra da seção 2 do [01](01-regras-de-negocio.md) |
-| `confirm_assignment(assignment_id uuid)` | **definer** | Dono confirma; congela `cargo_snapshot` + `cache_calculado`; muda status |
-| `refuse_assignment(assignment_id uuid, motivo text)` | **definer** | Dono recusa; insere notificação; enfileira e-mail |
-| `cancel_assignment(assignment_id uuid, motivo text)` | **definer** | Dono cancela confirmação; notifica |
+| `resolve_link(token_hash text) → jsonb` | **definer**, service_role | Lê o estado do link sem consumi-lo; se for cadastro válido, devolve os dados atuais para pré-preencher |
+| `submit_cadastro_by_token(token_hash text, dados jsonb)` | **definer**, service_role | Grava o cadastro e queima o link |
+| `responder_convite_by_token(token_hash text, aceita bool, motivo text)` | **definer**, service_role | Aceita/recusa; congela `cargo_snapshot` + `cache_calculado`; queima o link |
 | `close_payment_week(semana_inicio date)` | **definer**, admin | Gera/atualiza `payments` da semana |
 | `set_user_cargo(target uuid, novo cargo_type)` | **definer**, admin | Altera cargo |
 | `set_user_role(target uuid, novo user_role)` | **definer**, admin | Altera role |
 | `approve_user(target uuid, cargo cargo_type)` | **definer**, admin | Aprova cadastro + define cargo |
+| `set_user_active(target uuid, ativo bool)` | **definer**, admin | Ativa/desativa sem apagar nada |
+| `delete_colaborador(target uuid)` | **definer**, admin | Exclui a ficha; **recusa** se houver festa ou pagamento |
 | `is_admin() → boolean` | stable | Lê `auth.jwt() -> app_metadata ->> 'role'` |
 
 ### Triggers
