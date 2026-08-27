@@ -879,6 +879,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      delete_colaborador: { Args: { p_profile: string }; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       mark_payment_paid: { Args: { p_payment_id: string }; Returns: undefined }
       resolve_link: { Args: { p_token_hash: string }; Returns: Json }

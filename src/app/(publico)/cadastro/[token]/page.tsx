@@ -23,7 +23,7 @@ export default async function CadastroPorLinkPage({
     return <LinkInvalido estado={estado} />;
   }
 
-  const { colaborador } = link;
+  const { colaborador, cadastro, atualizacao } = link;
 
   return (
     <div className="space-y-5">
@@ -32,15 +32,12 @@ export default async function CadastroPorLinkPage({
           Olá{colaborador.nome_completo ? `, ${colaborador.nome_completo.split(" ")[0]}` : ""}!
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Preencha seus dados para entrar na equipe. É rápido, e você só precisa
-          fazer isso uma vez.
+          {atualizacao
+            ? "Confira seus dados abaixo e corrija o que mudou. O que estiver certo, é só deixar como está."
+            : "Preencha seus dados para entrar na equipe. É rápido, e você só precisa fazer isso uma vez."}
         </p>
       </div>
-      <CadastroForm
-        token={token}
-        nomeInicial={colaborador.nome_completo ?? ""}
-        celularInicial={colaborador.celular ?? ""}
-      />
+      <CadastroForm token={token} atualizacao={atualizacao} inicial={cadastro} />
     </div>
   );
 }

@@ -35,6 +35,23 @@ export type LinkColaboradorInfo = {
   celular: string | null;
 };
 
+/** Dados atuais do colaborador, para o link de cadastro abrir preenchido. */
+export type CadastroAtual = {
+  nome_completo: string | null;
+  rg: string | null;
+  cpf: string | null;
+  email: string | null;
+  celular: string | null;
+  cep: string | null;
+  logradouro: string | null;
+  numero: string | null;
+  complemento: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  uf: string | null;
+  chave_pix: string | null;
+};
+
 export type ConviteFestaInfo = {
   data: string;
   hora_inicio: string;
@@ -58,7 +75,14 @@ export type ConviteAssignmentInfo = {
 
 /** Payload de resolve_link(). O `estado` discrimina o que mais vem junto. */
 export type LinkResolvido =
-  | { estado: "valido"; tipo: "cadastro"; colaborador: LinkColaboradorInfo }
+  | {
+      estado: "valido";
+      tipo: "cadastro";
+      /** true quando o cadastro já foi preenchido antes e este link é de atualização */
+      atualizacao: boolean;
+      colaborador: LinkColaboradorInfo;
+      cadastro: CadastroAtual;
+    }
   | {
       estado: "valido";
       tipo: "convite";

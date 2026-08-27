@@ -12,6 +12,7 @@ import { formatPhoneBR, formatPhoneNational } from "@/lib/utils/phone";
 import { formatCEP, lookupCep } from "@/lib/utils/cep";
 import { formatCPF } from "@/lib/utils/cpf";
 import { formatRG } from "@/lib/utils/rg";
+import type { CadastroAtual } from "@/types/domain";
 
 type Form = {
   nome_completo: string;
@@ -31,30 +32,31 @@ type Form = {
 
 export function CadastroForm({
   token,
-  nomeInicial,
-  celularInicial,
+  atualizacao,
+  inicial,
 }: {
   token: string;
-  nomeInicial: string;
-  celularInicial: string;
+  /** true quando o cadastro já existe e este link é só para corrigir dados */
+  atualizacao: boolean;
+  inicial: CadastroAtual;
 }) {
   const [pending, startTransition] = useTransition();
   const [pronto, setPronto] = useState(false);
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [form, setForm] = useState<Form>({
-    nome_completo: nomeInicial,
-    rg: "",
-    cpf: "",
-    email: "",
-    celular: formatPhoneNational(celularInicial),
-    cep: "",
-    logradouro: "",
-    numero: "",
-    complemento: "",
-    bairro: "",
-    cidade: "",
-    uf: "",
-    chave_pix: "",
+    nome_completo: inicial.nome_completo ?? "",
+    rg: inicial.rg ? formatRG(inicial.rg) : "",
+    cpf: inicial.cpf ? formatCPF(inicial.cpf) : "",
+    email: inicial.email ?? "",
+    celular: inicial.celular ? formatPhoneNational(inicial.celular) : "",
+    cep: inicial.cep ? formatCEP(inicial.cep) : "",
+    logradouro: inicial.logradouro ?? "",
+    numero: inicial.numero ?? "",
+    complemento: inicial.complemento ?? "",
+    bairro: inicial.bairro ?? "",
+    cidade: inicial.cidade ?? "",
+    uf: inicial.uf ?? "",
+    chave_pix: inicial.chave_pix ?? "",
   });
 
   const set = (k: keyof Form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -88,10 +90,13 @@ export function CadastroForm({
       <Card>
         <CardContent className="flex flex-col items-center gap-3 px-6 py-10 text-center">
           <CheckCircle2 className="size-7 text-verde" />
-          <h2 className="font-display text-lg font-bold">Cadastro enviado!</h2>
+          <h2 className="font-display text-lg font-bold">
+            {atualizacao ? "Dados atualizados!" : "Cadastro enviado!"}
+          </h2>
           <p className="max-w-sm text-sm text-muted-foreground">
-            O escritório vai revisar seus dados. Quando você for escalado numa
-            festa, o convite chega no seu WhatsApp.
+            {atualizacao
+              ? "O escritório já está vendo os dados novos. Qualquer coisa, a gente chama no WhatsApp."
+              : "O escritório vai revisar seus dados. Quando você for escalado numa festa, o convite chega no seu WhatsApp."}
           </p>
           <p className="text-xs text-muted-foreground">Pode fechar esta página.</p>
         </CardContent>
@@ -202,7 +207,11 @@ export function CadastroForm({
         disabled={pending}
         className="w-full bg-verde font-semibold text-white hover:bg-verde-escuro"
       >
-        {pending ? "Enviando…" : "Enviar cadastro"}
+        {pending
+          ? "Enviando…"
+          : atualizacao
+            ? "Salvar alterações"
+            : "Enviar cadastro"}
       </Button>
     </div>
   );
