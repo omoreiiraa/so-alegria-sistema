@@ -89,7 +89,8 @@ export async function criarColaborador(input: unknown) {
 
 export async function gerarLinkCadastro(profileId: string) {
   const res = await emitirLink({ tipo: "cadastro", profileId });
-  revalidatePath("/admin/colaboradores");
+  // "layout" pega a lista e a ficha do colaborador de uma vez.
+  revalidatePath("/admin/colaboradores", "layout");
   return res;
 }
 
@@ -120,7 +121,7 @@ export async function revogarLink(linkId: string) {
     .update({ revogado_em: new Date().toISOString() })
     .eq("id", linkId);
   if (error) return { error: "Não foi possível revogar." };
-  revalidatePath("/admin/colaboradores");
+  revalidatePath("/admin/colaboradores", "layout");
   revalidatePath("/admin/festas", "layout");
   return { ok: true };
 }

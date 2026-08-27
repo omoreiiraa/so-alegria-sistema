@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Users } from "lucide-react";
+import Link from "next/link";
+import { Users, ChevronRight } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState } from "@/components/common/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ColaboradorActions } from "@/components/admin/colaborador-actions";
 import { NovoColaborador } from "@/components/admin/novo-colaborador";
+import { cn } from "@/lib/utils";
 import { CARGO_LABEL } from "@/types/domain";
 import type { CargoType } from "@/types/domain";
 
@@ -28,42 +29,43 @@ type Colab = {
 
 function ColabCard({ c }: { c: Colab }) {
   return (
-    <Card className={!c.ativo ? "opacity-60" : undefined}>
-      <CardContent className="flex items-center justify-between gap-4 p-4">
-        <div className="min-w-0">
-          <p className="flex items-center gap-2 truncate font-medium">
-            {c.nome_completo ?? c.email ?? "Sem nome"}
-            {c.nome_tio && (
-              <span className="text-sm font-normal text-muted-foreground">
-                ({c.nome_tio})
-              </span>
+    <Link href={`/admin/colaboradores/${c.id}`} className="block">
+      <Card
+        className={cn(
+          "transition-shadow hover:shadow-md",
+          !c.ativo && "opacity-60",
+        )}
+      >
+        <CardContent className="flex items-center justify-between gap-4 p-4">
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 truncate font-medium">
+              {c.nome_completo ?? c.email ?? "Sem nome"}
+              {c.nome_tio && (
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({c.nome_tio})
+                </span>
+              )}
+            </p>
+            <p className="truncate text-sm text-muted-foreground">
+              {c.email ?? "aguardando cadastro"}
+              {c.cidade ? ` · ${c.cidade}/${c.uf ?? ""}` : ""}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {!c.ativo && <Badge variant="secondary">Inativo</Badge>}
+            {!c.cadastro_preenchido && (
+              <Badge className="bg-laranja/15 text-laranja-escuro">Cadastro pendente</Badge>
             )}
-          </p>
-          <p className="truncate text-sm text-muted-foreground">
-            {c.email ?? "aguardando cadastro"}
-            {c.cidade ? ` · ${c.cidade}/${c.uf ?? ""}` : ""}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {!c.ativo && <Badge variant="secondary">Inativo</Badge>}
-          {!c.cadastro_preenchido && (
-            <Badge className="bg-laranja/15 text-laranja-escuro">Cadastro pendente</Badge>
-          )}
-          {c.aprovado ? (
-            <Badge variant="secondary">{CARGO_LABEL[c.cargo]}</Badge>
-          ) : (
-            <Badge className="bg-vermelho/10 text-vermelho">Pendente</Badge>
-          )}
-          <ColaboradorActions
-            profileId={c.id}
-            aprovado={c.aprovado}
-            ativo={c.ativo}
-            cargo={c.cargo}
-            nomeTio={c.nome_tio}
-          />
-        </div>
-      </CardContent>
-    </Card>
+            {c.aprovado ? (
+              <Badge variant="secondary">{CARGO_LABEL[c.cargo]}</Badge>
+            ) : (
+              <Badge className="bg-vermelho/10 text-vermelho">Pendente</Badge>
+            )}
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
@@ -89,7 +91,7 @@ export default async function ColaboradoresPage() {
     <div className="space-y-6">
       <PageHeader
         title="Colaboradores"
-        description="Crie a ficha, envie o link de cadastro e defina cargo e nome de tio."
+        description="Clique num colaborador para ver a ficha completa, o link de cadastro e o histórico de festas."
         action={<NovoColaborador />}
       />
 
