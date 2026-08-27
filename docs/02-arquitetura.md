@@ -12,7 +12,7 @@
 ┌───────────────────────────┐   ┌────────────────────────────┐
 │  Next.js (Vercel)          │   │  Supabase                   │
 │  - Server Actions          │   │  - Postgres (RLS + funções) │
-│  - middleware (auth + rate)│   │  - Auth (email/Google/OTP)  │
+│  - middleware (auth + rate)│   │  - Auth (e-mail/senha)      │
 │  - route handlers          │   │  - Storage (fotos estoque)  │
 └──────┬─────────────┬───────┘   │  - Edge Functions (webhooks)│
        │             │           └──────────────┬─────────────┘
@@ -48,7 +48,8 @@ Usar `@supabase/ssr` para cookies/sessão no App Router.
 ## Auth
 
 - **Quem tem conta:** só o admin. O colaborador não existe em `auth.users` (ADR-0012).
-- **Provedores:** e-mail/senha e Google OAuth.
+- **Provedores:** só e-mail/senha (ADR-0016). Não há autocadastro: a conta do admin é criada
+  manualmente no painel do Supabase.
 - **Custom claim `role`:** trigger grava `role` em `app_metadata` do usuário → lido via `auth.jwt()`
   nas policies (evita subquery recursiva). Ver [04](04-seguranca-rls-lgpd.md).
 - **Guarda de rotas:** `middleware.ts` valida sessão e redireciona:

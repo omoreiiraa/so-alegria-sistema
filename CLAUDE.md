@@ -41,7 +41,7 @@ As regras detalhadas estão em [docs/](docs/). **Sempre** consulte a doc relevan
 
 - **Next.js 14+** (App Router) · **TypeScript** · **Tailwind CSS** · **shadcn/ui**
 - **Supabase**: Postgres, Auth, Storage, Edge Functions (projeto `so-alegria`, região `sa-east-1`)
-- **Auth**: Supabase Auth (e-mail/senha + Google OAuth + OTP por e-mail via Resend)
+- **Auth**: Supabase Auth (e-mail/senha). Só o admin tem conta — criada manualmente pelo escritório
 - **E-mails**: Resend · **Rate limit**: Upstash Redis (middleware) · **CEP**: ViaCEP + BrasilAPI
 - **Hospedagem**: Vercel (team MYRAI)
 - **Mutações**: Server Actions + Postgres Functions. **Cálculo de cachê SEMPRE no banco.**

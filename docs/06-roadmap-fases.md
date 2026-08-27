@@ -14,7 +14,7 @@
 - [x] Hardening de funções (search_path + revoke execute) — advisors
 - [x] Seed (party_types) + bucket de estoque
 - [x] Tipos TS gerados do schema
-- [x] Auth: e-mail/senha + Google + custom claim `role` (guarda por layout)
+- [x] Auth: e-mail/senha + custom claim `role` (guarda por layout)
 - [x] Middleware: renovação de sessão + guarda de /admin e rate limit das rotas de token
 - [ ] Rate limit (Upstash) no middleware — pendente (chaves)
 - [ ] OTP de e-mail via Resend (config SMTP no Supabase) — pendente (chaves)

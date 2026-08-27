@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/common/password-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { GoogleButton } from "@/components/auth/google-button";
-import { Separator } from "@/components/ui/separator";
 
 export function LoginForm({ next }: { next?: string }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
@@ -64,14 +62,6 @@ export function LoginForm({ next }: { next?: string }) {
       >
         {pending ? "Entrando…" : "Entrar"}
       </Button>
-
-      <div className="flex items-center gap-3 py-1">
-        <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground">ou</span>
-        <Separator className="flex-1" />
-      </div>
-
-      <GoogleButton />
 
       <p className="pt-2 text-center text-xs text-muted-foreground">
         Acesso restrito ao escritório.
