@@ -112,7 +112,11 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
       const res = await removerItem(editId);
       if (res?.error) toast.error(res.error);
       else {
-        toast.success("Item removido.");
+        toast.success(
+          res.apagado
+            ? "Item apagado do estoque."
+            : "Item removido e zerado. O histórico de movimentações foi mantido.",
+        );
         setOpen(false);
         router.refresh();
       }

@@ -40,13 +40,22 @@ export async function atualizarItem(id: string, input: unknown) {
   return { ok: true };
 }
 
-/** Remoção lógica (preserva histórico de movimentações). */
+/**
+ * Remove o item de verdade quando ele nunca foi usado; quando já tem
+ * movimentação, inativa **e zera a quantidade** — antes só inativava, e o
+ * banco seguia contando um patrimônio que o escritório já tinha dado baixa.
+ */
 export async function removerItem(id: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("stock_items").update({ ativo: false }).eq("id", id);
-  if (error) return { error: "Não foi possível remover o item." };
+  const { data, error } = await supabase.rpc("delete_stock_item", { p_item: id });
+  if (error) {
+    // 23503 = ainda vinculado a alguma festa; a mensagem do banco diz quantas.
+    if (error.code === "23503") return { error: error.message };
+    return { error: "Não foi possível remover o item." };
+  }
   revalidatePath("/admin/estoque");
-  return { ok: true };
+  revalidatePath("/admin/festas", "layout");
+  return { ok: true, apagado: data === "apagado" };
 }
 
 // ---- Materiais vinculados à festa (baixa temporária + devolução) ----
