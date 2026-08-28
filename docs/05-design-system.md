@@ -52,9 +52,8 @@ Escala de tipo (base 16px): 12 · 14 · 16 · 18 · 20 · 24 · 30 · 36 · 48. 
 
 ## 4. Signature (elemento memorável)
 
-- **Faixa xadrez:** uma fita quadriculada preto/branco (2–3px de altura) como assinatura da marca —
-  rodapé de cards festivos, divisor de seções no app, borda inferior do header. Evocação direta do
-  piso de discoteca do logo. Usar **com parcimônia** (1 por tela).
+- ~~**Faixa xadrez**~~ — *removida em 28/08/2026, a pedido do dono: poluía o rodapé.* A classe
+  `.checker-strip` saiu do `globals.css`; se um dia voltar, recuperar do histórico do git.
 - **Card de convite de festa** (app): o momento-herói. Card grande, arredondado, com o tipo de festa,
   data/hora, cachê previsto em destaque, e dois botões claros **Confirmar** / **Recusar** (≤ 2 toques).
 
