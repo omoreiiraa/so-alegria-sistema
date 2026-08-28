@@ -62,7 +62,7 @@ export default async function FestasPage() {
         description="Gerencie as festas por status ou pelo calendário."
         action={
           <Button
-            render={<Link href="/admin/festas/nova" />}
+            render={<Link href="/admin/festas/nova" />} nativeButton={false}
             className="bg-verde font-semibold text-white hover:bg-verde-escuro"
           >
             <Plus className="size-4" /> Nova festa

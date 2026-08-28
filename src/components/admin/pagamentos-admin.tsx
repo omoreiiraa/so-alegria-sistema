@@ -112,7 +112,7 @@ export function PagamentosAdmin({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1">
-          <Button render={<Link href={`/admin/pagamentos?semana=${prevSemana}`} />} variant="outline" size="icon" aria-label="Semana anterior">
+          <Button render={<Link href={`/admin/pagamentos?semana=${prevSemana}`} />} nativeButton={false} variant="outline" size="icon" aria-label="Semana anterior">
             <ChevronLeft className="size-4" />
           </Button>
           <div className="px-3 text-center">
@@ -123,7 +123,7 @@ export function PagamentosAdmin({
               {fechada ? "Semana fechada" : "Prévia (não fechada)"}
             </p>
           </div>
-          <Button render={<Link href={`/admin/pagamentos?semana=${nextSemana}`} />} variant="outline" size="icon" aria-label="Próxima semana">
+          <Button render={<Link href={`/admin/pagamentos?semana=${nextSemana}`} />} nativeButton={false} variant="outline" size="icon" aria-label="Próxima semana">
             <ChevronRight className="size-4" />
           </Button>
         </div>

@@ -240,7 +240,7 @@ export default async function FestaDetailPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Button
-            render={<Link href="/admin/festas" />}
+            render={<Link href="/admin/festas" />} nativeButton={false}
             variant="ghost"
             size="icon"
             aria-label="Voltar"
@@ -260,7 +260,7 @@ export default async function FestaDetailPage({
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="secondary">{PARTY_STATUS_LABEL[festa.status]}</Badge>
-          <Button render={<Link href={`/admin/festas/${id}/editar`} />} variant="outline" size="sm">
+          <Button render={<Link href={`/admin/festas/${id}/editar`} />} nativeButton={false} variant="outline" size="sm">
             <Pencil className="size-4" /> Editar
           </Button>
         </div>
