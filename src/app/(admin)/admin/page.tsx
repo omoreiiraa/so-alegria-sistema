@@ -139,9 +139,17 @@ export default async function AdminHome() {
     .select("id, status, party_id, parties ( data )")
     .eq("status", "pendente");
 
-  const pendingAssignmentsCount = pendingAssoc
-    ? pendingAssoc.filter(a => a.parties && (a.parties as any).data >= today).length
-    : 0;
+  // O embed vem tipado como objeto ou array conforme a cardinalidade inferida;
+  // normalizar aqui evita o `as any` que o lint reprovava.
+  const dataDaFesta = (parties: unknown): string | null => {
+    const p = Array.isArray(parties) ? parties[0] : parties;
+    return (p as { data?: string } | null)?.data ?? null;
+  };
+
+  const pendingAssignmentsCount = (pendingAssoc ?? []).filter((a) => {
+    const data = dataDaFesta(a.parties);
+    return data !== null && data >= today;
+  }).length;
 
   // 3. Fetch count of pending collaborator profiles awaiting approval
   const { count: pendentesCount } = await supabase

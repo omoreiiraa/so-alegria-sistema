@@ -129,6 +129,7 @@ export type Database = {
           logradouro: string | null
           numero: string | null
           observacoes: string | null
+          orcamento_assinado_path: string | null
           partner_id: string | null
           party_type_id: string | null
           qtd_criancas: number | null
@@ -159,6 +160,7 @@ export type Database = {
           logradouro?: string | null
           numero?: string | null
           observacoes?: string | null
+          orcamento_assinado_path?: string | null
           partner_id?: string | null
           party_type_id?: string | null
           qtd_criancas?: number | null
@@ -189,6 +191,7 @@ export type Database = {
           logradouro?: string | null
           numero?: string | null
           observacoes?: string | null
+          orcamento_assinado_path?: string | null
           partner_id?: string | null
           party_type_id?: string | null
           qtd_criancas?: number | null
@@ -880,6 +883,7 @@ export type Database = {
         }
       }
       delete_colaborador: { Args: { p_profile: string }; Returns: undefined }
+      delete_stock_item: { Args: { p_item: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       mark_payment_paid: { Args: { p_payment_id: string }; Returns: undefined }
       resolve_link: { Args: { p_token_hash: string }; Returns: Json }

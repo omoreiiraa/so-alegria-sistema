@@ -170,7 +170,14 @@ export async function escalarColaborador(input: unknown) {
 
   revalidatePath(`/admin/festas/${d.party_id}`);
   revalidatePath("/admin/festas");
-  return "error" in convite ? { ok: true } : { ok: true, url: convite.url };
+  return "error" in convite
+    ? { ok: true }
+    : {
+        ok: true,
+        url: convite.url,
+        linkId: convite.linkId,
+        expiraEm: convite.expiraEm,
+      };
 }
 
 export async function removerEscalado(assignmentId: string, partyId: string) {

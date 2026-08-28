@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { escalarColaborador } from "@/actions/festas";
+import { lembrarConvite } from "@/lib/convite-cache";
 import { CARGO_LABEL, PRESENCE_MODE_LABEL } from "@/types/domain";
 import type { CargoType, PresenceMode } from "@/types/domain";
 
@@ -78,6 +79,8 @@ export function EscalarPanel({
       if (res?.error) toast.error(res.error);
       else {
         if (res?.url) {
+          // Guarda o link para o card da equipe poder recopiá-lo depois.
+          if (res.linkId) lembrarConvite(res.linkId, res.url, res.expiraEm ?? null);
           await navigator.clipboard.writeText(res.url).catch(() => {});
           toast.success(`${sel.nome} escalado(a)! Link do convite copiado.`);
         } else {
