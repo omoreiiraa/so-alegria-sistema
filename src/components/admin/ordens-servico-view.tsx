@@ -281,6 +281,7 @@ function OSCard({ os }: { os: OrdemServicoCard }) {
           {os.festaId && (
             <Button
               render={<Link href={`/admin/festas/${os.festaId}`} />}
+              nativeButton={false}
               variant="ghost"
               size="sm"
             >

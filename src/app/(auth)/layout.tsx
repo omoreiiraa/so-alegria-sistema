@@ -15,7 +15,6 @@ export default function AuthLayout({
         </Link>
         <div className="w-full max-w-md">{children}</div>
       </div>
-      <div className="checker-strip w-full" />
     </div>
   );
 }

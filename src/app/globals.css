@@ -173,20 +173,6 @@
   }
 }
 
-/*
-  Assinatura da marca: fita quadriculada preto/branco (piso de discoteca do logo).
-  Usar com parcimônia — 1 por tela. Ex.: <div class="checker-strip" />
-*/
-.checker-strip {
-  height: 8px;
-  background-image:
-    linear-gradient(45deg, var(--tinta-checker) 25%, transparent 25%, transparent 75%, var(--tinta-checker) 75%),
-    linear-gradient(45deg, var(--tinta-checker) 25%, transparent 25%, transparent 75%, var(--tinta-checker) 75%);
-  background-size: 16px 16px;
-  background-position: 0 0, 8px 8px;
-  --tinta-checker: oklch(0.24 0.02 158);
-}
-
 /* Números tabulares para valores/placas */
 .tabular {
   font-variant-numeric: tabular-nums;

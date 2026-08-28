@@ -315,7 +315,7 @@ export default async function AdminHome() {
         }
         action={
           <Button
-            render={<Link href="/admin/festas/nova" />}
+            render={<Link href="/admin/festas/nova" />} nativeButton={false}
             className="bg-verde font-semibold text-white hover:bg-verde-escuro shadow-sm cursor-pointer transition-colors"
           >
             <Plus className="size-4" /> Novo evento
@@ -377,7 +377,7 @@ export default async function AdminHome() {
                     <p className="text-xs text-muted-foreground mt-0.5">Não há festas agendadas para o dia de hoje.</p>
                   </div>
                   <Button
-                    render={<Link href="/admin/festas/nova" />}
+                    render={<Link href="/admin/festas/nova" />} nativeButton={false}
                     size="sm"
                     className="bg-verde text-white hover:bg-verde-escuro font-semibold mt-2 cursor-pointer"
                   >

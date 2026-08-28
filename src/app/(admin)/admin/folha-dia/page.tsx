@@ -172,7 +172,7 @@ export default async function FolhaDiaPage({
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5 no-print">
         <div className="flex items-center gap-3">
           <Button
-            render={<Link href="/admin" />}
+            render={<Link href="/admin" />} nativeButton={false}
             variant="ghost"
             size="icon"
             aria-label="Voltar"

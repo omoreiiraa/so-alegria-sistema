@@ -107,7 +107,7 @@ export default async function ColaboradorDetailPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Button
-            render={<Link href="/admin/colaboradores" />}
+            render={<Link href="/admin/colaboradores" />} nativeButton={false}
             variant="ghost"
             size="icon"
             aria-label="Voltar"
