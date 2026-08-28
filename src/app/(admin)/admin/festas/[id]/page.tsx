@@ -26,6 +26,7 @@ import { RemoverEscalado } from "@/components/admin/remover-escalado";
 import { ConviteLink } from "@/components/admin/convite-link";
 import { MateriaisFesta, type Material } from "@/components/admin/materiais-festa";
 import { GerarOrcamento } from "@/components/admin/gerar-orcamento";
+import { ContratoFesta } from "@/components/admin/contrato-festa";
 import { formatPhoneNational } from "@/lib/utils/phone";
 import { formatDateLong, formatTime } from "@/lib/utils/date";
 import { formatBRL } from "@/lib/utils/money";
@@ -60,6 +61,7 @@ type Festa = {
   tema_festa: string | null;
   telefone_contato: string | null;
   valor_festa: number | null;
+  orcamento_assinado_path: string | null;
   observacoes: string | null;
   fechada_por: string | null;
   logradouro: string | null;
@@ -141,7 +143,8 @@ export default async function FestaDetailPage({
     .select(
       `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome, aniversariante_nome,
        aniversariante_idade, qtd_criancas, qtd_recreadores, tema_festa, telefone_contato,
-       valor_festa, observacoes, fechada_por, logradouro, numero, bairro, cidade, uf,
+       valor_festa, orcamento_assinado_path, observacoes, fechada_por, logradouro,
+       numero, bairro, cidade, uf,
        party_types ( nome ), partners ( nome, cidade, uf ),
        party_vehicles ( vehicles ( id, apelido, tipo, placa ) ),
        party_party_types ( party_types ( nome ) )`,
@@ -374,6 +377,20 @@ export default async function FestaDetailPage({
               )}
               <GerarOrcamento
                 festaId={id}
+                telefone={festa.telefone_contato}
+                contratante={festa.contratante_nome}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-base">Contrato do evento</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ContratoFesta
+                festaId={id}
+                temAnexo={festa.orcamento_assinado_path !== null}
                 telefone={festa.telefone_contato}
                 contratante={festa.contratante_nome}
               />
