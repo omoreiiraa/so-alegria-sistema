@@ -27,7 +27,7 @@ async function emitirLink(args: {
   tipo: LinkTipo;
   profileId: string;
   assignmentId?: string;
-}): Promise<{ url: string } | { error: string }> {
+}): Promise<{ url: string; linkId: string; expiraEm: string | null } | { error: string }> {
   const session = await requireAdmin();
   const supabase = await createClient();
 
@@ -44,17 +44,24 @@ async function emitirLink(args: {
   if (revogaErro) return { error: "Não foi possível revogar o link anterior." };
 
   const token = novoToken();
-  const { error } = await supabase.from("colaborador_links").insert({
-    tipo: args.tipo,
-    token_hash: hashToken(token),
-    profile_id: args.profileId,
-    party_assignment_id: args.assignmentId ?? null,
-    expira_em: args.tipo === "convite" ? expiraEmDoConvite() : null,
-    created_by: session.userId,
-  });
-  if (error) return { error: "Não foi possível gerar o link." };
+  const expiraEm = args.tipo === "convite" ? expiraEmDoConvite() : null;
+  // O id volta junto: é a chave com que o navegador do admin lembra o link,
+  // já que o token em claro não pode ser relido do banco.
+  const { data, error } = await supabase
+    .from("colaborador_links")
+    .insert({
+      tipo: args.tipo,
+      token_hash: hashToken(token),
+      profile_id: args.profileId,
+      party_assignment_id: args.assignmentId ?? null,
+      expira_em: expiraEm,
+      created_by: session.userId,
+    })
+    .select("id")
+    .single();
+  if (error || !data) return { error: "Não foi possível gerar o link." };
 
-  return { url: urlDoLink(args.tipo, token) };
+  return { url: urlDoLink(args.tipo, token), linkId: data.id, expiraEm };
 }
 
 /** Abre a ficha do colaborador e já devolve o link de cadastro. */
