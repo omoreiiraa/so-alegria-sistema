@@ -451,7 +451,9 @@ export default async function FestaDetailPage({
                       <ConviteLink
                         assignmentId={a.id}
                         partyId={id}
-                        nome={a.profiles?.nome_tio || a.profiles?.nome_completo || "Colaborador"}
+                        // Nome real: este vai na mensagem que o colaborador
+                        // recebe. O nome de tio é só para a gestão se achar.
+                        nome={a.profiles?.nome_completo || a.profiles?.nome_tio || "Colaborador"}
                         celular={a.profiles?.celular ?? null}
                         data={festa.data}
                         links={a.colaborador_links}
