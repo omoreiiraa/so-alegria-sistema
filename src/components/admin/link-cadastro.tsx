@@ -40,6 +40,7 @@ export function LinkCadastro({
   links,
 }: {
   profileId: string;
+  /** Nome real do colaborador — vai na mensagem que ele recebe, nunca o nome de tio. */
   nome: string;
   celular: string | null;
   cadastroPreenchido: boolean;

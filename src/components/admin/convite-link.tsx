@@ -48,6 +48,7 @@ export function ConviteLink({
 }: {
   assignmentId: string;
   partyId: string;
+  /** Nome real do colaborador — vai na mensagem que ele recebe, nunca o nome de tio. */
   nome: string;
   celular: string | null;
   data: string;
