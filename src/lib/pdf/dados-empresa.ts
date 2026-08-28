@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
-import { LOGO_JPG_BASE64 } from "./logo";
+import { embutirLogo } from "./logo";
 import { CNPJ_SO_ALEGRIA } from "./orcamento";
 import { formatDate, formatTime } from "@/lib/utils/date";
 
@@ -86,7 +86,7 @@ export async function adicionarPaginaDadosEmpresa(
 ): Promise<void> {
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const logo = await pdf.embedJpg(Buffer.from(LOGO_JPG_BASE64, "base64"));
+  const logo = await embutirLogo(pdf);
 
   const page = pdf.addPage([A4.width, A4.height]);
   let y = A4.height - MARGEM;
@@ -175,9 +175,11 @@ export async function adicionarPaginaDadosEmpresa(
   };
 
   // ── Cabeçalho ────────────────────────────────────────────────────────────
-  const LOGO = 62;
-  y -= LOGO;
-  page.drawImage(logo, { x: (A4.width - LOGO) / 2, y, width: LOGO, height: LOGO });
+  if (logo) {
+    const LOGO = 62;
+    y -= LOGO;
+    page.drawImage(logo, { x: (A4.width - LOGO) / 2, y, width: LOGO, height: LOGO });
+  }
 
   y -= 22;
   centralizado("SÓ ALEGRIA", 18, bold, VERDE);

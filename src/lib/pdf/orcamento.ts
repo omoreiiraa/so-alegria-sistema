@@ -4,7 +4,7 @@ import {
   rgb,
   type PDFFont,
 } from "pdf-lib";
-import { LOGO_JPG_BASE64 } from "./logo";
+import { embutirLogo } from "./logo";
 import { formatBRL } from "@/lib/utils/money";
 import { formatDate, formatTime } from "@/lib/utils/date";
 
@@ -77,7 +77,7 @@ export async function gerarOrcamentoPDF(d: OrcamentoData): Promise<Uint8Array> {
 
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const logo = await pdf.embedJpg(Buffer.from(LOGO_JPG_BASE64, "base64"));
+  const logo = await embutirLogo(pdf);
 
   let page = pdf.addPage([A4.width, A4.height]);
   let y = A4.height - MARGEM;
@@ -104,14 +104,16 @@ export async function gerarOrcamentoPDF(d: OrcamentoData): Promise<Uint8Array> {
   };
 
   // ── Cabeçalho: logo centralizada + identificação da empresa ──────────────
-  const LOGO = 78;
-  y -= LOGO;
-  page.drawImage(logo, {
-    x: (A4.width - LOGO) / 2,
-    y,
-    width: LOGO,
-    height: LOGO,
-  });
+  if (logo) {
+    const LOGO = 78;
+    y -= LOGO;
+    page.drawImage(logo, {
+      x: (A4.width - LOGO) / 2,
+      y,
+      width: LOGO,
+      height: LOGO,
+    });
+  }
 
   y -= 26;
   const titulo = "SÓ ALEGRIA";
