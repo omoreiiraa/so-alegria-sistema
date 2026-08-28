@@ -142,7 +142,8 @@ export function ContratoFesta({
           <>
             <Upload className="size-4 text-muted-foreground" />
             <span className="text-muted-foreground">
-              Anexe o orçamento que o cliente preencheu e devolveu.
+              Nada devolvido pelo cliente ainda — o contrato usa o orçamento do
+              sistema.
             </span>
           </>
         )}
@@ -160,6 +161,26 @@ export function ContratoFesta({
       />
 
       <div className="flex flex-wrap gap-2">
+        {/* Gerar não depende do anexo: sem ele, o contrato começa pelo
+            orçamento que o próprio sistema monta. */}
+        <Button
+          size="sm"
+          disabled={gerando}
+          onClick={baixarContrato}
+          className="bg-laranja font-semibold text-white hover:bg-laranja-escuro"
+        >
+          {gerando ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <FileSignature className="size-3.5" />
+          )}
+          {gerando ? "Gerando…" : "Gerar contrato (PDF)"}
+        </Button>
+
+        <Button size="sm" variant="outline" onClick={abrirWhatsApp}>
+          <MessageCircle className="size-3.5" /> WhatsApp
+        </Button>
+
         <Button
           size="sm"
           variant="outline"
@@ -171,29 +192,13 @@ export function ContratoFesta({
           ) : (
             <Upload className="size-3.5" />
           )}
-          {temAnexo ? "Trocar anexo" : "Anexar orçamento"}
+          {temAnexo ? "Trocar anexo" : "Anexar devolvido"}
         </Button>
 
         {temAnexo && (
           <>
             <Button size="sm" variant="outline" disabled={pending} onClick={verAnexo}>
               <Eye className="size-3.5" /> Ver anexo
-            </Button>
-            <Button
-              size="sm"
-              disabled={gerando}
-              onClick={baixarContrato}
-              className="bg-laranja font-semibold text-white hover:bg-laranja-escuro"
-            >
-              {gerando ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <FileSignature className="size-3.5" />
-              )}
-              {gerando ? "Gerando…" : "Gerar contrato (PDF)"}
-            </Button>
-            <Button size="sm" variant="outline" onClick={abrirWhatsApp}>
-              <MessageCircle className="size-3.5" /> WhatsApp
             </Button>
             <Button
               size="sm"
@@ -210,8 +215,8 @@ export function ContratoFesta({
 
       <p className="text-xs text-muted-foreground">
         {temAnexo
-          ? "O contrato sai com o orçamento devolvido e, no fim, a página com depósito, PIX, cadastro do cliente e a cláusula de cancelamento."
-          : "Aceita PDF ou foto da folha (JPG/PNG), até 10 MB."}
+          ? "O contrato sai com o orçamento devolvido pelo cliente e, no fim, a página com depósito, PIX, cadastro e cláusula de cancelamento."
+          : "O contrato sai com o orçamento gerado pelo sistema e a página de dados da empresa. Quando o cliente devolver o orçamento preenchido, anexe aqui (PDF ou foto, até 10 MB) que ele entra no lugar."}
       </p>
 
       <Dialog open={confirmarRemocao} onOpenChange={setConfirmarRemocao}>

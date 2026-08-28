@@ -236,3 +236,21 @@ o item da lista de materiais da festa sem aviso.
 com histórico deixa uma linha inativa de quantidade zero, que é o preço de não destruir
 `stock_movements`. Os 11 itens removidos antes desta correção foram apagados manualmente
 a pedido do dono, junto com as 32 movimentações que restavam.
+
+### ADR-0021 — Emissão de PDF não pode depender de enfeite nem de anexo
+**Data:** 2026-08-28
+**Contexto:** Em produção, gerar o orçamento devolvia 500 com `SOI not found in JPEG`,
+embora a base64 da logo estivesse íntegra no fonte e no bundle. Causa: o pdf-lib monta o
+`DataView` a partir de `bytes.buffer` **ignorando o byteOffset**
+(`JpegEmbedder.js:43`). Um `Buffer` do Node é uma janela sobre um pool compartilhado;
+quando ele vem com offset — o que ocorre no runtime da Vercel, mas não no Node local —
+o pdf-lib lê do começo do pool e não encontra o marcador do JPEG.
+**Decisão:** (a) `bytesParaPdf()` copia para um `Uint8Array` próprio antes de qualquer
+`embedJpg`/`embedPng`, garantindo offset 0. (b) A logo passou a ser opcional: falhar ao
+embuti-la registra no log e o documento sai sem ela, porque enfeite não pode bloquear a
+emissão. (c) O contrato deixou de exigir o arquivo devolvido pelo cliente — sem anexo,
+a primeira página é o orçamento que o próprio sistema gera.
+**Consequência:** a montagem dos dados da festa saiu de dentro da rota do orçamento para
+`lib/pdf/festa-orcamento.ts`, compartilhada pelas duas rotas. Qualquer `embed` novo de
+imagem precisa passar por `bytesParaPdf` — o bug não aparece em desenvolvimento, só no
+runtime de produção, o que o torna especialmente traiçoeiro.

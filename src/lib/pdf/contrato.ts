@@ -3,6 +3,7 @@ import {
   adicionarPaginaDadosEmpresa,
   type DadosEmpresaData,
 } from "./dados-empresa";
+import { bytesParaPdf } from "./bytes";
 
 /**
  * Contrato do evento = orçamento devolvido pelo cliente + página de dados da
@@ -30,9 +31,8 @@ export function ehImagem(contentType: string | null, nome: string): boolean {
 async function copiarAnexo(pdf: PDFDocument, anexo: ArquivoAnexado) {
   if (ehImagem(anexo.contentType, anexo.nome)) {
     const png = /png/i.test(anexo.contentType ?? "") || /\.png$/i.test(anexo.nome);
-    const img = png
-      ? await pdf.embedPng(anexo.bytes)
-      : await pdf.embedJpg(anexo.bytes);
+    const bytes = bytesParaPdf(anexo.bytes);
+    const img = png ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
 
     // A foto entra numa folha A4 inteira, sem distorcer o que foi escrito nela.
     const page = pdf.addPage([A4.width, A4.height]);
@@ -54,6 +54,11 @@ async function copiarAnexo(pdf: PDFDocument, anexo: ArquivoAnexado) {
   for (const p of paginas) pdf.addPage(p);
 }
 
+/**
+ * `anexo` é o que o cliente devolveu. Quando ele ainda não devolveu nada, entra
+ * o orçamento que o próprio sistema gera — assim o contrato sai de qualquer
+ * jeito, e o escritório pode mandar tudo de uma vez.
+ */
 export async function gerarContratoPDF(
   anexo: ArquivoAnexado,
   dados: DadosEmpresaData,
