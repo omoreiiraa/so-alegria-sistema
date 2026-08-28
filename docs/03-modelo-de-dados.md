@@ -164,6 +164,10 @@ numera com `pg_advisory_xact_lock` por ano.
 | `delete_colaborador(target uuid)` | **definer**, admin | Exclui a ficha; **recusa** se houver festa ou pagamento |
 | `is_admin() → boolean` | stable | Lê `auth.jwt() -> app_metadata ->> 'role'` |
 
+**`parties.orcamento_assinado_path`** — caminho no bucket privado `contratos` do
+orçamento preenchido e devolvido pelo cliente. O contrato (orçamento + folha de dados
+da empresa) é montado a cada download, não guardado. Ver ADR-0019.
+
 ### Triggers
 - `handle_new_user` em `auth.users` (after insert) → cria `profiles`.
 - `sync_role_to_jwt` em `profiles` → grava `role` em `app_metadata` (custom claim).

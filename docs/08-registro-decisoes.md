@@ -202,3 +202,37 @@ dados atuais, então o formulário abre preenchido e o colaborador só corrige o
 `resolve_link` só devolve o bloco `cadastro` enquanto o link vale: queimado, expirado ou
 revogado, volta nulo. Ainda assim, um link vazado passa a expor mais do que antes; o
 contrapeso é o admin revogar pelo painel.
+
+### ADR-0019 — Contrato do evento montado na hora, sem converter o .docx
+**Data:** 2026-08-27
+**Contexto:** O contrato é o orçamento que o cliente preenche e devolve, mais a folha
+"Dados da empresa" (depósito, PIX, cadastro de pessoa física e cláusula de cancelamento),
+que o escritório mandava solta pelo WhatsApp. Duas decisões apareceram: como transformar
+o .docx em página do PDF, e se o contrato pronto deve ser guardado.
+**Decisão:** (a) A folha é **redesenhada com pdf-lib**, não convertida. Converter .docx
+para PDF exige LibreOffice no servidor, que não roda no free tier da Vercel; redesenhar
+ainda deixa a página no visual da marca e permite adiantar os campos que o sistema já
+sabe (nome, endereço, data, horário, telefone), sobrando CPF e RG para o cliente. (b) O
+contrato **não é guardado**: guarda-se só o arquivo devolvido pelo cliente, num bucket
+privado, e o PDF final é montado a cada download.
+**Consequência:** os dados bancários e a cláusula viram código (`lib/pdf/dados-empresa.ts`);
+mudar de conta é mudar uma constante e publicar, não trocar um arquivo. Em compensação, o
+contrato nunca fica desatualizado em relação à festa, e não há uma segunda cópia de dado
+pessoal para gerenciar. Se algum dia for preciso provar o que foi enviado numa data, aí
+sim será necessário arquivar o PDF gerado.
+
+### ADR-0020 — Remover item do estoque zera a quantidade
+**Data:** 2026-08-28
+**Contexto:** `removerItem` só fazia `ativo = false`. O item sumia da tela, mas
+`quantidade_total` continuava no banco — o sistema seguia afirmando que a empresa tinha
+15 baldes que o escritório já tinha dado baixa. `quantidade_total` é patrimônio total (só
+diminui em `perda`), então inativar sem zerar deixa o número errado para sempre.
+**Decisão:** RPC `delete_stock_item(uuid)` `SECURITY DEFINER`, só admin, com `for update`
+na linha. Se o item nunca foi usado (sem movimentações), **apaga de vez**. Se já tem
+movimentação, **inativa e zera a quantidade**, preservando o histórico. Se está vinculado
+a alguma festa, **recusa** e diz quantas — a FK é `on delete cascade` e apagar sumiria com
+o item da lista de materiais da festa sem aviso.
+**Consequência:** o total do estoque no banco passa a bater com o que a tela mostra. Item
+com histórico deixa uma linha inativa de quantidade zero, que é o preço de não destruir
+`stock_movements`. Os 11 itens removidos antes desta correção foram apagados manualmente
+a pedido do dono, junto com as 32 movimentações que restavam.
