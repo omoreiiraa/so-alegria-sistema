@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
 import { VeiculosManager, type Veiculo } from "@/components/admin/veiculos-manager";
@@ -7,7 +7,7 @@ import { VeiculosManager, type Veiculo } from "@/components/admin/veiculos-manag
 export const metadata: Metadata = { title: "Veículos" };
 
 export default async function VeiculosPage() {
-  await requireAdmin();
+  await requireEquipe();
   const supabase = await createClient();
   const { data } = await supabase
     .from("vehicles")

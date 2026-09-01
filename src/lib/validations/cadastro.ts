@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidCPF } from "@/lib/utils/cpf";
+import { isValidCNPJ } from "@/lib/utils/cnpj";
 import { isValidPhone } from "@/lib/utils/phone";
 import { isValidRG } from "@/lib/utils/rg";
 
@@ -11,6 +12,13 @@ export const cadastroColaboradorSchema = z.object({
   nome_completo: z.string().min(3, "Informe seu nome completo"),
   rg: z.string().refine(isValidRG, "RG inválido (verifique o dígito)"),
   cpf: z.string().refine(isValidCPF, "CPF inválido"),
+  // Opcional: nem todo tio é MEI. Se preencher, tem de ser um CNPJ válido.
+  cnpj: z
+    .string()
+    .trim()
+    .optional()
+    .default("")
+    .refine((v) => v === "" || isValidCNPJ(v), "CNPJ inválido"),
   email: z.string().email("E-mail inválido"),
   celular: z.string().refine((v) => isValidPhone(v), "Celular inválido (com DDD)"),
   cep: z.string().min(8, "CEP inválido"),
@@ -45,6 +53,7 @@ export const editarColaboradorSchema = z.object({
   nome_tio: z.string().trim().optional().default(""),
   rg: vazioOu(isValidRG, "RG inválido (verifique o dígito)"),
   cpf: vazioOu(isValidCPF, "CPF inválido"),
+  cnpj: vazioOu(isValidCNPJ, "CNPJ inválido"),
   email: vazioOu((v) => z.string().email().safeParse(v).success, "E-mail inválido"),
   celular: vazioOu((v) => isValidPhone(v), "Celular inválido (com DDD)"),
   cep: vazioOu((v) => v.replace(/\D/g, "").length === 8, "CEP inválido"),

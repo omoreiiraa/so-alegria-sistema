@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdmin } from "@/lib/auth";
+import { requireGestao } from "@/lib/auth";
 import type { ConfirmationMethod } from "@/types/domain";
 
 const BUCKET = "ordens-servico";
@@ -11,7 +11,7 @@ const ROTA = "/admin/ordens-servico";
 
 /** Gera a OS de uma escalação. A numeração sequencial por ano é feita no banco. */
 export async function gerarOrdemServico(assignmentId: string) {
-  await requireAdmin();
+  await requireGestao();
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_service_order", {
     p_assignment: assignmentId,
@@ -27,7 +27,7 @@ export async function gerarOrdemServico(assignmentId: string) {
 }
 
 export async function marcarOSEnviada(id: string) {
-  await requireAdmin();
+  await requireGestao();
   const supabase = await createClient();
   const { error } = await supabase
     .from("service_orders")
@@ -51,7 +51,7 @@ const respostaSchema = z.object({
  * modelo da CONTRATANTE pede no bloco "CONFIRMAÇÃO DO CONTRATADO(A)".
  */
 export async function registrarRespostaOS(id: string, input: unknown) {
-  await requireAdmin();
+  await requireGestao();
   const parsed = respostaSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
@@ -79,7 +79,7 @@ export async function registrarRespostaOS(id: string, input: unknown) {
 
 /** Anexa o .docx já preenchido/assinado. Substitui o anterior, se houver. */
 export async function anexarArquivoOS(id: string, formData: FormData) {
-  await requireAdmin();
+  await requireGestao();
   const file = formData.get("arquivo");
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Selecione um arquivo." };
@@ -121,7 +121,7 @@ export async function anexarArquivoOS(id: string, formData: FormData) {
 
 /** URL assinada e temporária para baixar o anexo (o bucket é privado). */
 export async function urlArquivoOS(id: string) {
-  await requireAdmin();
+  await requireGestao();
   const supabase = await createClient();
   const { data: os } = await supabase
     .from("service_orders")
@@ -138,7 +138,7 @@ export async function urlArquivoOS(id: string) {
 }
 
 export async function removerArquivoOS(id: string) {
-  await requireAdmin();
+  await requireGestao();
   const supabase = await createClient();
   const { data: os } = await supabase
     .from("service_orders")
@@ -159,7 +159,7 @@ export async function removerArquivoOS(id: string) {
 }
 
 export async function excluirOrdemServico(id: string) {
-  await requireAdmin();
+  await requireGestao();
   const supabase = await createClient();
   const { data: os } = await supabase
     .from("service_orders")

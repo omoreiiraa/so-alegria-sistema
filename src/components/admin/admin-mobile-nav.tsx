@@ -11,9 +11,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { AdminNav } from "@/components/admin/admin-nav";
-import { Wordmark } from "@/components/brand/wordmark";
+import type { UserRole } from "@/types/domain";
+import { Logo } from "@/components/brand/logo";
 
-export function AdminMobileNav() {
+export function AdminMobileNav({ role }: { role: UserRole }) {
   const [open, setOpen] = useState(false);
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -31,12 +32,12 @@ export function AdminMobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="w-72 bg-sidebar text-sidebar-foreground">
         <SheetHeader>
-          <SheetTitle>
-            <Wordmark className="text-lg text-sidebar-foreground" subtitle={false} />
+          <SheetTitle className="flex justify-center">
+            <Logo className="size-14" />
           </SheetTitle>
         </SheetHeader>
         <div className="px-3">
-          <AdminNav onNavigate={() => setOpen(false)} />
+          <AdminNav role={role} onNavigate={() => setOpen(false)} />
         </div>
       </SheetContent>
     </Sheet>

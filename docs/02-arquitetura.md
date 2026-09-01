@@ -47,7 +47,8 @@ Usar `@supabase/ssr` para cookies/sessão no App Router.
 
 ## Auth
 
-- **Quem tem conta:** só o admin. O colaborador não existe em `auth.users` (ADR-0012).
+- **Quem tem conta:** só o escritório, uma conta por pessoa, com papéis (ADR-0022).
+  O colaborador não existe em `auth.users` (ADR-0012).
 - **Provedores:** só e-mail/senha (ADR-0016). Não há autocadastro: a conta do admin é criada
   manualmente no painel do Supabase.
 - **Custom claim `role`:** trigger grava `role` em `app_metadata` do usuário → lido via `auth.jwt()`

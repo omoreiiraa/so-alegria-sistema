@@ -31,6 +31,16 @@ Extraída do logo (verde, vermelho, laranja/amarelo, piso xadrez preto/branco).
 para ação destrutiva/negativa e notificações. Amarelo em doses pequenas (badges). Nunca os quatro
 saturados juntos com o mesmo peso — isso vira ruído. "Antes de sair, tire um acessório."
 
+## 1.1 Aplicação da marca
+
+O logo **já traz "SÓ ALEGRIA · Recreação e Discoteca" desenhado dentro dele**. Por isso ele
+aparece sozinho, sem texto ao lado: escrever o nome de novo duplicava a marca e espremia a
+arte. Componente único: `components/brand/logo.tsx` (`<Logo />`).
+
+Tamanhos em uso: 72px na barra lateral (centralizado), 96px no login, 56px no menu mobile,
+44px no topo das páginas públicas, 36px no cabeçalho mobile do painel. Abaixo de ~36px a
+arte fica ilegível — não usar.
+
 ## 2. Tipografia
 
 | Papel | Fonte | Uso |

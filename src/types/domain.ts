@@ -40,6 +40,7 @@ export type CadastroAtual = {
   nome_completo: string | null;
   rg: string | null;
   cpf: string | null;
+  cnpj: string | null;
   email: string | null;
   celular: string | null;
   cep: string | null;
@@ -91,6 +92,43 @@ export type LinkResolvido =
       assignment: ConviteAssignmentInfo;
     }
   | { estado: Exclude<EstadoLink, "valido">; tipo?: LinkTipo };
+
+// ---------------------------------------------------------------------------
+// Papéis de acesso (ver ADR-0022 e a matriz em docs/04)
+// ---------------------------------------------------------------------------
+// Espelham os helpers do Postgres — `is_dona()`, `is_gestao()`, `is_equipe()`.
+// Aqui eles só decidem o que aparece na tela; quem barra de verdade é a RLS.
+// `admin` é o papel da conta única antiga e segue valendo como proprietária.
+
+/** Proprietária: define papel de acesso das outras. */
+export const PAPEIS_DONA: readonly UserRole[] = ["dona", "admin"];
+/** Gestão: o que envolve dinheiro e Ordem de Serviço. */
+export const PAPEIS_GESTAO: readonly UserRole[] = ["dona", "admin", "gerente"];
+/** Escritório com login — a operação inteira. O colaborador não tem conta. */
+export const PAPEIS_EQUIPE: readonly UserRole[] = [
+  "dona",
+  "admin",
+  "gerente",
+  "funcionario",
+];
+
+export const eDona = (role: UserRole) => PAPEIS_DONA.includes(role);
+export const eGestao = (role: UserRole) => PAPEIS_GESTAO.includes(role);
+export const eEquipe = (role: UserRole) => PAPEIS_EQUIPE.includes(role);
+
+/**
+ * Todo mundo entra pelo painel. O que muda por papel é o que aparece no menu:
+ * Pagamentos e Ordem de Serviço só para a gestão.
+ */
+export const ROTA_INICIAL = "/admin";
+
+export const ROLE_LABEL: Record<UserRole, string> = {
+  admin: "Administração",
+  dona: "Proprietária",
+  gerente: "Gerente",
+  funcionario: "Funcionário",
+  colaborador: "Colaborador",
+};
 
 /** Rótulos de exibição (pt-BR). A lógica de cachê vive no banco (docs/01). */
 export const CARGO_LABEL: Record<CargoType, string> = {

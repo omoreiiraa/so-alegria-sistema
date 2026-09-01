@@ -14,7 +14,7 @@ import {
   Phone,
   PartyPopper,
 } from "lucide-react";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -134,7 +134,7 @@ export default async function FestaDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  await requireEquipe();
   const { id } = await params;
   const supabase = await createClient();
 

@@ -11,7 +11,7 @@ Supabase (`apply_migration`). Tipos TS gerados por `generate_typescript_types` �
 ## Enums
 
 ```sql
-create type user_role          as enum ('admin', 'colaborador');
+create type user_role          as enum ('admin', 'dona', 'gerente', 'funcionario', 'colaborador');
 create type cargo_type         as enum ('pendente', 'trainee', 'junior', 'experiente', 'coordenador');
 create type party_status       as enum ('fechada', 'escalada', 'confirmada', 'realizada', 'paga', 'cancelada');
 create type assignment_status  as enum ('pendente', 'confirmada', 'recusada', 'cancelada');
@@ -30,8 +30,8 @@ create type stock_movement_type as enum ('entrada', 'saida_festa', 'devolucao', 
 | Coluna | Tipo | Notas |
 |---|---|---|
 | `id` | uuid PK | identidade do colaborador; referenciada por assignments e payments |
-| `user_id` | uuid null → auth.users (on delete set null) | **só admin tem**; colaborador não faz login |
-| `role` | user_role default `'colaborador'` | espelhado em `app_metadata` via trigger |
+| `user_id` | uuid null → auth.users (on delete set null) | **só o escritório tem**; colaborador não faz login |
+| `role` | user_role default `'colaborador'` | papel de acesso; espelhado em `app_metadata` via trigger. Só a dona altera (RPC + trigger `guard_profile_privileges`) |
 | `cargo` | cargo_type default `'pendente'` | |
 | `nome_completo` | text | |
 | `nome_tio` | text null | definido pelo admin |
@@ -156,13 +156,21 @@ numera com `pg_advisory_xact_lock` por ano.
 | `resolve_link(token_hash text) → jsonb` | **definer**, service_role | Lê o estado do link sem consumi-lo; se for cadastro válido, devolve os dados atuais para pré-preencher |
 | `submit_cadastro_by_token(token_hash text, dados jsonb)` | **definer**, service_role | Grava o cadastro e queima o link |
 | `responder_convite_by_token(token_hash text, aceita bool, motivo text)` | **definer**, service_role | Aceita/recusa; congela `cargo_snapshot` + `cache_calculado`; queima o link |
-| `close_payment_week(semana_inicio date)` | **definer**, admin | Gera/atualiza `payments` da semana |
-| `set_user_cargo(target uuid, novo cargo_type)` | **definer**, admin | Altera cargo |
-| `set_user_role(target uuid, novo user_role)` | **definer**, admin | Altera role |
-| `approve_user(target uuid, cargo cargo_type)` | **definer**, admin | Aprova cadastro + define cargo |
-| `set_user_active(target uuid, ativo bool)` | **definer**, admin | Ativa/desativa sem apagar nada |
-| `delete_colaborador(target uuid)` | **definer**, admin | Exclui a ficha; **recusa** se houver festa ou pagamento |
-| `is_admin() → boolean` | stable | Lê `auth.jwt() -> app_metadata ->> 'role'` |
+| `close_payment_week(semana_inicio date)` | **definer**, **gestão** | Gera/atualiza `payments` da semana |
+| `set_user_cargo(target uuid, novo cargo_type)` | **definer**, equipe | Altera cargo |
+| `set_user_role(target uuid, novo user_role)` | **definer**, **dona** | Altera o papel de acesso |
+| `approve_user(target uuid, cargo cargo_type)` | **definer**, equipe | Aprova cadastro + define cargo |
+| `set_user_active(target uuid, ativo bool)` | **definer**, equipe | Ativa/desativa sem apagar nada |
+| `delete_colaborador(target uuid)` | **definer**, equipe | Exclui a ficha; **recusa** se houver festa ou pagamento |
+| `is_gestao() → boolean` | stable | Gestão: `dona`, `admin` ou `gerente` — dinheiro e OS |
+| `is_dona() → boolean` | stable | Proprietária: `dona` ou `admin` (papel legado) |
+| `is_equipe() → boolean` | stable | Qualquer login do escritório — a operação inteira |
+| `auth_role() → text` | stable | Lê `auth.jwt() -> app_metadata ->> 'role'`; base dos três acima |
+
+**`profiles.cnpj`** — CNPJ do colaborador (MEI), só dígitos, opcional. Sem `UNIQUE`, ao
+contrário do CPF: o CPF é a identidade da pessoa, o CNPJ é a empresa pela qual ela
+fatura, e duas pessoas podem faturar pela mesma. Constraint de formato no banco
+(`^[0-9]{14}$`); dígitos verificadores no Zod.
 
 **`parties.orcamento_assinado_path`** — caminho no bucket privado `contratos` do
 orçamento preenchido e devolvido pelo cliente. O contrato (orçamento + folha de dados

@@ -15,7 +15,7 @@ import {
   Car,
   ChevronRight
 } from "lucide-react";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -68,7 +68,7 @@ function getInitials(name: string) {
 }
 
 export default async function AdminHome() {
-  const { profile } = await requireAdmin();
+  const { profile } = await requireEquipe();
   const supabase = await createClient();
 
   const today = todayISO();

@@ -15,28 +15,46 @@ import {
   KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { UserRole } from "@/types/domain";
+import { eGestao } from "@/types/domain";
 
+/**
+ * `nivel: "gestao"` some do menu do funcionário — são as duas telas que ele não
+ * alcança. Esconder é conforto, não segurança: quem barra é a RLS, e cada
+ * página ainda chama o seu `require*` (ver src/lib/auth.ts).
+ */
 export const adminNavItems = [
-  { href: "/admin", label: "Início", icon: LayoutDashboard, exact: true },
-  { href: "/admin/festas", label: "Festas", icon: PartyPopper },
-  { href: "/admin/ordens-servico", label: "Ordem de Serviço", icon: FileText },
-  { href: "/admin/folha-dia", label: "Folha do Dia", icon: Printer },
-  { href: "/admin/colaboradores", label: "Colaboradores", icon: Users },
-  { href: "/admin/pagamentos", label: "Pagamentos", icon: Wallet },
-  { href: "/admin/veiculos", label: "Veículos", icon: Truck },
-  { href: "/admin/parceiros", label: "Parceiros", icon: Building2 },
-  { href: "/admin/estoque", label: "Estoque", icon: Package },
-  { href: "/admin/conta", label: "Minha conta", icon: KeyRound },
-];
+  { href: "/admin", label: "Início", icon: LayoutDashboard, exact: true, nivel: "equipe" },
+  { href: "/admin/festas", label: "Festas", icon: PartyPopper, nivel: "equipe" },
+  { href: "/admin/ordens-servico", label: "Ordem de Serviço", icon: FileText, nivel: "gestao" },
+  { href: "/admin/folha-dia", label: "Folha do Dia", icon: Printer, nivel: "equipe" },
+  { href: "/admin/colaboradores", label: "Colaboradores", icon: Users, nivel: "equipe" },
+  { href: "/admin/pagamentos", label: "Pagamentos", icon: Wallet, nivel: "gestao" },
+  { href: "/admin/veiculos", label: "Veículos", icon: Truck, nivel: "equipe" },
+  { href: "/admin/parceiros", label: "Parceiros", icon: Building2, nivel: "equipe" },
+  { href: "/admin/estoque", label: "Estoque", icon: Package, nivel: "equipe" },
+  { href: "/admin/conta", label: "Minha conta", icon: KeyRound, nivel: "equipe" },
+] as const;
 
-export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
+export function AdminNav({
+  role,
+  onNavigate,
+}: {
+  role: UserRole;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
+  const itens = adminNavItems.filter(
+    (item) => item.nivel === "equipe" || eGestao(role),
+  );
+
   return (
     <nav className="flex flex-col gap-1">
-      {adminNavItems.map((item) => {
-        const active = item.exact
-          ? pathname === item.href
-          : pathname.startsWith(item.href);
+      {itens.map((item) => {
+        const active =
+          "exact" in item && item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
         const Icon = item.icon;
         return (
           <Link

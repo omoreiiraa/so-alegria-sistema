@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { novoToken, hashToken, urlDoLink, expiraEmDoConvite } from "@/lib/links";
 import { toE164 } from "@/lib/utils/phone";
 import { onlyDigitsCep } from "@/lib/utils/cep";
@@ -28,7 +28,7 @@ async function emitirLink(args: {
   profileId: string;
   assignmentId?: string;
 }): Promise<{ url: string; linkId: string; expiraEm: string | null } | { error: string }> {
-  const session = await requireAdmin();
+  const session = await requireEquipe();
   const supabase = await createClient();
 
   const alvo = supabase
@@ -66,7 +66,7 @@ async function emitirLink(args: {
 
 /** Abre a ficha do colaborador e já devolve o link de cadastro. */
 export async function criarColaborador(input: unknown) {
-  await requireAdmin();
+  await requireEquipe();
   const parsed = novoColaboradorSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
@@ -102,7 +102,7 @@ export async function gerarLinkCadastro(profileId: string) {
 }
 
 export async function gerarConvite(assignmentId: string, partyId: string) {
-  await requireAdmin();
+  await requireEquipe();
   const supabase = await createClient();
   const { data } = await supabase
     .from("party_assignments")
@@ -121,7 +121,7 @@ export async function gerarConvite(assignmentId: string, partyId: string) {
 }
 
 export async function revogarLink(linkId: string) {
-  await requireAdmin();
+  await requireEquipe();
   const supabase = await createClient();
   const { error } = await supabase
     .from("colaborador_links")
@@ -163,6 +163,7 @@ export async function submeterCadastro(token: string, input: unknown) {
       nome_completo: d.nome_completo.trim(),
       rg: onlyRg(d.rg),
       cpf: onlyDigits(d.cpf),
+      cnpj: d.cnpj ? onlyDigits(d.cnpj) : "",
       email: d.email.trim().toLowerCase(),
       celular,
       cep: onlyDigitsCep(d.cep),

@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireGestao } from "@/lib/auth";
 
 /** Admin: gera/atualiza os pagamentos da semana (seg–dom). */
 export async function fecharSemana(semanaInicio: string) {
+  await requireGestao();
   const supabase = await createClient();
   const { error } = await supabase.rpc("close_payment_week", {
     p_semana_inicio: semanaInicio,
@@ -16,6 +18,7 @@ export async function fecharSemana(semanaInicio: string) {
 
 /** Admin: marca um pagamento como pago. */
 export async function marcarPago(paymentId: string) {
+  await requireGestao();
   const supabase = await createClient();
   const { error } = await supabase.rpc("mark_payment_paid", {
     p_payment_id: paymentId,
@@ -27,6 +30,7 @@ export async function marcarPago(paymentId: string) {
 
 /** Admin: marca vários pagamentos como pagos. */
 export async function marcarTodosPagos(paymentIds: string[]) {
+  await requireGestao();
   const supabase = await createClient();
   for (const id of paymentIds) {
     const { error } = await supabase.rpc("mark_payment_paid", { p_payment_id: id });
