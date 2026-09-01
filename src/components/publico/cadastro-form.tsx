@@ -11,6 +11,7 @@ import { submeterCadastro } from "@/actions/links";
 import { formatPhoneBR, formatPhoneNational } from "@/lib/utils/phone";
 import { formatCEP, lookupCep } from "@/lib/utils/cep";
 import { formatCPF } from "@/lib/utils/cpf";
+import { formatCNPJ } from "@/lib/utils/cnpj";
 import { formatRG } from "@/lib/utils/rg";
 import type { CadastroAtual } from "@/types/domain";
 
@@ -18,6 +19,7 @@ type Form = {
   nome_completo: string;
   rg: string;
   cpf: string;
+  cnpj: string;
   email: string;
   celular: string;
   cep: string;
@@ -47,6 +49,7 @@ export function CadastroForm({
     nome_completo: inicial.nome_completo ?? "",
     rg: inicial.rg ? formatRG(inicial.rg) : "",
     cpf: inicial.cpf ? formatCPF(inicial.cpf) : "",
+    cnpj: inicial.cnpj ? formatCNPJ(inicial.cnpj) : "",
     email: inicial.email ?? "",
     celular: inicial.celular ? formatPhoneNational(inicial.celular) : "",
     cep: inicial.cep ? formatCEP(inicial.cep) : "",
@@ -128,6 +131,16 @@ export function CadastroForm({
               placeholder="000.000.000-00"
             />
           </div>
+          <Campo
+            label="CNPJ"
+            value={form.cnpj}
+            inputMode="numeric"
+            onChange={(v) => set("cnpj")(formatCNPJ(v))}
+            placeholder="00.000.000/0000-00"
+          />
+          <p className="-mt-2 text-xs text-muted-foreground">
+            Só preencha se você emite nota como MEI.
+          </p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Campo
               label="E-mail"

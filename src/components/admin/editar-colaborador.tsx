@@ -20,6 +20,7 @@ import { atualizarColaborador } from "@/actions/colaboradores";
 import { formatPhoneBR, formatPhoneNational } from "@/lib/utils/phone";
 import { formatCEP, lookupCep } from "@/lib/utils/cep";
 import { formatCPF } from "@/lib/utils/cpf";
+import { formatCNPJ } from "@/lib/utils/cnpj";
 import { formatRG } from "@/lib/utils/rg";
 
 export type FichaColaborador = {
@@ -27,6 +28,7 @@ export type FichaColaborador = {
   nome_tio: string | null;
   rg: string | null;
   cpf: string | null;
+  cnpj: string | null;
   email: string | null;
   celular: string | null;
   cep: string | null;
@@ -47,6 +49,7 @@ function paraFormulario(f: FichaColaborador): Form {
     nome_tio: f.nome_tio ?? "",
     rg: f.rg ? formatRG(f.rg) : "",
     cpf: f.cpf ? formatCPF(f.cpf) : "",
+    cnpj: f.cnpj ? formatCNPJ(f.cnpj) : "",
     email: f.email ?? "",
     celular: f.celular ? formatPhoneNational(f.celular) : "",
     cep: f.cep ? formatCEP(f.cep) : "",
@@ -154,6 +157,13 @@ export function EditarColaborador({
                 placeholder="000.000.000-00"
               />
             </div>
+            <Campo
+              label="CNPJ"
+              value={form.cnpj}
+              inputMode="numeric"
+              onChange={(v) => set("cnpj")(formatCNPJ(v))}
+              placeholder="00.000.000/0000-00"
+            />
             <div className="grid gap-4 sm:grid-cols-2">
               <Campo
                 label="E-mail"

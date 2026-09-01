@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireAdmin } from "@/lib/auth";
+import { requireGestao } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
 import {
@@ -64,7 +64,7 @@ function local(p: {
 }
 
 export default async function OrdensServicoPage() {
-  await requireAdmin();
+  await requireGestao();
   const supabase = await createClient();
 
   const [{ data: osData }, { data: assignData }] = await Promise.all([

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MapPinOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BrandBadge, Wordmark } from "@/components/brand/wordmark";
+import { Logo } from "@/components/brand/logo";
 
 export const metadata: Metadata = {
   title: "Página não encontrada",
@@ -18,9 +18,8 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <main className="theme-app flex min-h-dvh flex-col bg-background text-foreground">
-      <header className="mx-auto flex w-full max-w-3xl items-center gap-2.5 px-5 py-5">
-        <BrandBadge className="size-9" />
-        <Wordmark className="text-lg" subtitle={false} />
+      <header className="mx-auto flex w-full max-w-3xl px-5 py-5">
+        <Logo className="size-12" />
       </header>
 
       <section className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-5 pb-16 text-center">

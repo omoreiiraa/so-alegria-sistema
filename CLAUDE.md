@@ -8,9 +8,15 @@
 ## 1. O que é este projeto
 
 **Sistema de Gestão de Recreação Infantil** para a empresa **Só Alegria — Recreação e Discoteca**.
-Plataforma web single-tenant. **Só o admin tem conta e faz login.**
+Plataforma web single-tenant. **Só o escritório tem conta e faz login** — uma por pessoa.
 
-- **Admin** (`/admin`) — escritório (3 pessoas). Desktop-first. Gere festas (kanban + calendário), colaboradores, pagamentos, frota, buffets e estoque.
+- **Escritório** (`/admin`) — 4 contas, uma por pessoa, com papéis diferentes (ADR-0022).
+  Desktop-first.
+  - `dona` (Camila) — tudo, inclusive definir o papel de acesso das outras.
+  - `gerente` (Paula) — tudo, menos papel de acesso.
+  - `funcionario` (Carol, Caio) — festas (kanban + calendário), escala, colaboradores,
+    frota, buffets e estoque. **Sem Pagamentos e sem Ordem de Serviço.**
+  - `admin` — papel legado da conta única antiga; equivale a `dona`.
 - **Colaborador** — freelancer ("tio/tia"). **Não tem login nem área própria.** Alcança o
   sistema por dois links tokenizados enviados no WhatsApp:
   - `/cadastro/[token]` — preenche os próprios dados, uma vez (link vale até ser usado).
@@ -41,7 +47,7 @@ As regras detalhadas estão em [docs/](docs/). **Sempre** consulte a doc relevan
 
 - **Next.js 14+** (App Router) · **TypeScript** · **Tailwind CSS** · **shadcn/ui**
 - **Supabase**: Postgres, Auth, Storage, Edge Functions (projeto `so-alegria`, região `sa-east-1`)
-- **Auth**: Supabase Auth (e-mail/senha). Só o admin tem conta — criada manualmente pelo escritório
+- **Auth**: Supabase Auth (e-mail/senha). Conta é só do escritório, provisionada por `npm run usuarios`
 - **E-mails**: Resend · **Rate limit**: Upstash Redis (middleware) · **CEP**: ViaCEP + BrasilAPI
 - **Hospedagem**: Vercel (team MYRAI)
 - **Mutações**: Server Actions + Postgres Functions. **Cálculo de cachê SEMPRE no banco.**
@@ -54,6 +60,7 @@ As regras detalhadas estão em [docs/](docs/). **Sempre** consulte a doc relevan
 
 ```bash
 npm run dev          # ambiente local (http://localhost:3000)
+npm run usuarios     # provisiona/reajusta as contas do escritório (idempotente)
 npm run build        # build de produção
 npm run lint         # ESLint
 npm run typecheck    # tsc --noEmit
@@ -67,14 +74,14 @@ Migrations de banco são aplicadas via **MCP do Supabase** (`apply_migration`) e
 ## 5. Regras de ouro (não violar)
 
 1. **Cachê e pagamentos são calculados no Postgres**, nunca no client/server JS. Ver [docs/01](docs/01-regras-de-negocio.md).
-2. **RLS obrigatório em TODAS as tabelas.** Nenhuma tabela pública sem policy. Ver [docs/04](docs/04-seguranca-rls-lgpd.md).
-3. **`role`, `cargo`, `cache_*`, `payments`** só mudam via funções `SECURITY DEFINER` com checagem de permissão. Nunca UPDATE direto do client.
+2. **RLS obrigatório em TODAS as tabelas.** Nenhuma tabela pública sem policy. Policy nova escolhe entre `is_equipe()` (operação) e `is_gestao()` (dinheiro e OS) — `is_admin()` não existe mais. Ver [docs/04](docs/04-seguranca-rls-lgpd.md).
+3. **`role`, `cargo`, `cache_*`, `payments`** só mudam via funções `SECURITY DEFINER` com checagem de permissão (`is_equipe()` ou `is_gestao()`). Nunca UPDATE direto do client. **`role` só a dona muda** (`is_dona()` + trigger `guard_profile_privileges`).
 4. **Service role key nunca no client.** Só em Server Actions / Edge Functions.
 5. **Snapshot de cachê:** ao confirmar assignment, congela-se `cargo_snapshot` e `cache_calculado`. Mudança de cargo não altera festas já confirmadas.
 6. **Datas/horas em `America/Sao_Paulo`; valores em BRL.** Nunca renderizar UTC cru ao usuário.
 7. **Validação dupla:** Zod (client+server) **e** constraints no banco (CPF, telefone E.164, CEP).
 8. **Colaborador não é usuário do sistema.** Não tem linha em `auth.users`; `profiles.id` é
-   a identidade, e `profiles.user_id` só existe para admin.
+   a identidade, e `profiles.user_id` só existe para quem trabalha no escritório.
 9. **Links tokenizados:** token de 256 bits, guardado **só como hash sha256**, uso único e
    expiração checada no banco. As rotas públicas nunca tocam tabela direto — passam por
    RPC `SECURITY DEFINER` chamado do servidor com service role. Ver `src/actions/links.ts`.
@@ -90,6 +97,8 @@ so-alegria/
 ├── docs/                      # documentação normativa
 ├── supabase/
 │   └── migrations/            # SQL versionado (espelha o que roda no projeto)
+├── scripts/
+│   └── criar-usuarios.mjs     # provisiona as contas do escritório (service role)
 ├── src/
 │   ├── app/
 │   │   ├── (auth)/            # login e recuperação de senha (só admin)

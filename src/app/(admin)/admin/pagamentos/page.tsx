@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireAdmin } from "@/lib/auth";
+import { requireGestao } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
 import { PagamentosAdmin, type PagamentoRow } from "@/components/admin/pagamentos-admin";
@@ -14,7 +14,7 @@ export default async function AdminPagamentosPage({
 }: {
   searchParams: Promise<{ semana?: string }>;
 }) {
-  await requireAdmin();
+  await requireGestao();
   const { semana } = await searchParams;
   const semanaInicio = mondayOfWeek(semana && ISO.test(semana) ? semana : todayISO());
   const semanaFim = addDaysISO(semanaInicio, 6);

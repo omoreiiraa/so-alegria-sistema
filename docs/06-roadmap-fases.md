@@ -92,3 +92,24 @@
 (ver ADR-0015 — depende da Business API, com custo por conversa).
 
 **Pendências:** limpar as contas órfãs em `auth.users` que não são de admin.
+
+## Fase 8 — Login por pessoa (concluída em 2026-09-01)
+
+- [x] `user_role` com `dona`, `gerente` e `funcionario` (migration 0026)
+- [x] Helpers `is_dona()` / `is_gestao()` / `is_equipe()`; `is_admin()` removido (0028)
+- [x] Corte equipe x gestão: a operação é da equipe; Pagamentos e OS, da gestão
+- [x] Uma policy `for all` por tabela, no lugar das quatro por comando
+- [x] Trigger `guard_profile_privileges`: ninguém se promove a dona
+- [x] `party_types`, `vehicles`, `partners` e `payment_weeks` deixaram de ser legíveis
+      por qualquer autenticado
+- [x] Guards do app por papel (`requireEquipe` / `requireGestao` / `requireDona`)
+- [x] Menu esconde Pagamentos e OS de quem não é gestão
+- [x] `npm run usuarios` provisiona as contas (Camila, Paula, Carol, Caio)
+- [x] Correção de bagagem: `handle_new_user` fazia `on conflict` num índice parcial e
+      quebrava toda criação de conta desde a 0017 (migration 0027)
+
+**Pendências:**
+- [ ] Desativar `soalegria@admin.com` depois que cada uma entrar com a sua conta
+- [ ] Tela para a dona criar/editar conta do escritório (hoje é o script)
+- [ ] Trocar as senhas provisórias (`Nome#2026`) na primeira entrada
+- [ ] Decidir se o cachê da escala deve sumir para o funcionário (ver ADR-0022)

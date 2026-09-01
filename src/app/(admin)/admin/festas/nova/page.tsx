@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
 import { FestaForm } from "@/components/admin/festa-form";
@@ -7,7 +7,7 @@ import { FestaForm } from "@/components/admin/festa-form";
 export const metadata: Metadata = { title: "Nova festa" };
 
 export default async function NovaFestaPage() {
-  await requireAdmin();
+  await requireEquipe();
   const supabase = await createClient();
   const [{ data: types }, { data: partners }, { data: vehicles }] = await Promise.all([
     supabase.from("party_types").select("id, nome").eq("ativo", true).order("nome"),

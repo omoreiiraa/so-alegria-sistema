@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Printer, Calendar, MapPin, Clock, Users, Car, FileText } from "lucide-react";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,7 +59,7 @@ export default async function FolhaDiaPage({
 }: {
   searchParams: Promise<{ data?: string }>;
 }) {
-  await requireAdmin();
+  await requireEquipe();
   const { data: dateParam } = await searchParams;
   const targetDate = dateParam || todayISO();
   const supabase = await createClient();

@@ -254,3 +254,47 @@ a primeira página é o orçamento que o próprio sistema gera.
 `lib/pdf/festa-orcamento.ts`, compartilhada pelas duas rotas. Qualquer `embed` novo de
 imagem precisa passar por `bytesParaPdf` — o bug não aparece em desenvolvimento, só no
 runtime de produção, o que o torna especialmente traiçoeiro.
+
+### ADR-0022 — Uma conta por pessoa do escritório, com papéis
+**Data:** 2026-09-01
+**Contexto:** O escritório inteiro entrava por `soalegria@admin.com`. Senha compartilhada
+não diz quem fez o quê, não dá para tirar o acesso de uma pessoa sem tirar de todas, e
+obriga a expor pagamento de colaborador a quem não tem nada com isso.
+**Decisão:** `user_role` passa a ter `dona`, `gerente` e `funcionario` além dos `admin` e
+`colaborador` que já existiam. Três helpers no Postgres traduzem papel em alcance:
+`is_dona()` (proprietária), `is_gestao()` (dona + gerente) e `is_equipe()` (qualquer login
+do escritório).
+
+O corte é **equipe x gestão**, não "admin x resto": a operação inteira — festas, escala,
+colaboradores, frota, parceiros, estoque — é da equipe; o que envolve **dinheiro**
+(`payments`, `payment_weeks`) e **Ordem de Serviço** é da gestão. Papel de acesso é só da dona.
+
+**Alternativas:** (a) tabela de permissões por módulo, com lookup nas policies: mais
+flexível, mas troca um claim no JWT por uma subquery em toda linha de toda tabela, para um
+escritório de quatro pessoas; (b) resolver o alcance só no front, deixando o banco binário:
+a RLS deixaria de ser a fronteira, contra a ADR-0002.
+
+**Consequência:**
+- **`is_admin()` foi removido** (migration 0028). Enquanto o corte era "admin x resto" dava
+  para viver com ele significando "gestão"; com o funcionário enxergando quase tudo, o nome
+  passaria a mentir em toda policy onde aparecesse. O `drop function public.is_admin()` no fim
+  da 0028, sem `if exists`, é a prova de que nenhuma policy ficou apontando para ele — se
+  tivesse ficado, a migration inteira voltaria atrás.
+- As policies estavam quebradas em quatro por tabela (select/insert/update/delete), herança de
+  quando o SELECT tinha predicado próprio (o colaborador via só as festas dele). Esse predicado
+  morreu na 0017; a 0028 recolheu cada tabela a uma policy `for all`.
+- A equipe escreve em `profiles`, então o trigger `guard_profile_privileges` voltou a existir
+  (o que a ADR-0014 tinha removido) para impedir que gerente ou funcionário se promova a dona.
+  Desta vez ele deixa passar sessões sem JWT, que é o caso do cadastro por token.
+- Quatro tabelas (`party_types`, `vehicles`, `partners`, `payment_weeks`) liberavam SELECT a
+  qualquer autenticado, sobra de quando o colaborador tinha login. Com um papel de menor
+  privilégio no sistema a brecha deixou de ser teórica: `payment_weeks` virou gestão e as
+  outras três, equipe.
+- **O funcionário vê cachê.** Pagamentos está fechado, mas `party_assignments.cache_final`
+  aparece na tela da festa — é o que o escalador precisa para montar a equipe. Fechar isso
+  exigiria esconder coluna, não tabela; ficou de fora por ora.
+- Contas são provisionadas por `npm run usuarios` (Auth Admin API, service role), não por
+  migration: senha e identidade são coisa do GoTrue, não do SQL.
+- A conta única `soalegria@admin.com` continua de pé como `admin` até o escritório confirmar
+  que cada uma entra com a sua. Ela é o oposto do que esta ADR decidiu — desativá-la é o
+  último passo da migração, não um detalhe.

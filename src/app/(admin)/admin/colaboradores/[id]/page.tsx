@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Link2, PartyPopper } from "lucide-react";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import { ExcluirColaborador } from "@/components/admin/excluir-colaborador";
 import { LinkCadastro, type LinkRow } from "@/components/admin/link-cadastro";
 import { formatPhoneNational } from "@/lib/utils/phone";
 import { formatCPF } from "@/lib/utils/cpf";
+import { formatCNPJ } from "@/lib/utils/cnpj";
 import { formatRG } from "@/lib/utils/rg";
 import { formatCEP } from "@/lib/utils/cep";
 import { formatDate } from "@/lib/utils/date";
@@ -33,6 +34,7 @@ type Perfil = {
   nome_tio: string | null;
   rg: string | null;
   cpf: string | null;
+  cnpj: string | null;
   email: string | null;
   celular: string | null;
   cep: string | null;
@@ -62,7 +64,7 @@ export default async function ColaboradorDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  await requireEquipe();
   const { id } = await params;
   const supabase = await createClient();
 
@@ -70,7 +72,7 @@ export default async function ColaboradorDetailPage({
     supabase
       .from("profiles")
       .select(
-        `id, nome_completo, nome_tio, rg, cpf, email, celular, cep, logradouro, numero,
+        `id, nome_completo, nome_tio, rg, cpf, cnpj, email, celular, cep, logradouro, numero,
          complemento, bairro, cidade, uf, chave_pix, cargo, aprovado, ativo, created_at,
          colaborador_links ( id, tipo, usado_em, revogado_em, created_at )`,
       )
@@ -147,6 +149,7 @@ export default async function ColaboradorDetailPage({
               nome_tio: p.nome_tio,
               rg: p.rg,
               cpf: p.cpf,
+              cnpj: p.cnpj,
               email: p.email,
               celular: p.celular,
               cep: p.cep,
@@ -181,6 +184,7 @@ export default async function ColaboradorDetailPage({
               <Campo label="Nome de tio" valor={p.nome_tio} />
               <Campo label="RG" valor={p.rg ? formatRG(p.rg) : null} />
               <Campo label="CPF" valor={p.cpf ? formatCPF(p.cpf) : null} />
+              <Campo label="CNPJ" valor={p.cnpj ? formatCNPJ(p.cnpj) : null} />
               <Campo label="E-mail" valor={p.email} />
               <Campo label="Celular" valor={p.celular ? formatPhoneNational(p.celular) : null} />
             </CardContent>

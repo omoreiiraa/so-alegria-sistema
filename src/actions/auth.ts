@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { loginSchema, senhaSchema } from "@/lib/validations/auth";
+import type { UserRole } from "@/types/domain";
+import { eEquipe, ROTA_INICIAL } from "@/types/domain";
 
 export type ActionState = { error?: string } | undefined;
 
@@ -31,14 +33,17 @@ export async function login(
     return { error: "E-mail ou senha incorretos." };
   }
 
-  if (data.user?.app_metadata?.role !== "admin") {
+  // O papel vem do custom claim (app_metadata), a mesma fonte que a RLS lê.
+  // Colaborador não entra: ele não tem conta, e conta antiga não vira porta.
+  const role = data.user?.app_metadata?.role as UserRole | undefined;
+  if (!role || !eEquipe(role)) {
     await supabase.auth.signOut();
     return { error: "Esta conta não tem acesso ao painel." };
   }
 
   const next = formData.get("next") as string | null;
   if (next) redirect(next);
-  redirect("/admin");
+  redirect(ROTA_INICIAL);
 }
 
 /** Troca a senha do admin logado (usada após o link de recuperação). */

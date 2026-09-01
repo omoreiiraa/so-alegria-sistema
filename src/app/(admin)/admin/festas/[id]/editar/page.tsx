@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
 import { FestaForm, type FestaInitial } from "@/components/admin/festa-form";
@@ -15,7 +15,7 @@ export default async function EditarFestaPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  await requireEquipe();
   const { id } = await params;
   const supabase = await createClient();
 

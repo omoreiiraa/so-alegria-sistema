@@ -9,7 +9,8 @@ perda de informação e retrabalho. Este sistema centraliza tudo numa plataforma
 
 ## Objetivo do produto
 
-- **Admin:** gerir festas (kanban + calendário), colaboradores, pagamentos, frota, buffets parceiros e estoque.
+- **Escritório:** gerir festas (kanban + calendário), colaboradores, pagamentos, frota, buffets
+  parceiros e estoque — cada pessoa com a sua conta e o seu alcance (ver [ADR-0022](08-registro-decisoes.md)).
 - **Freelancer:** confirmar ou recusar a festa e preencher o próprio cadastro — sempre por
   link enviado no WhatsApp, sem conta e sem app. Ver [ADR-0012](08-registro-decisoes.md).
 
@@ -26,7 +27,9 @@ perda de informação e retrabalho. Este sistema centraliza tudo numa plataforma
 |---|---|---|---|
 | **Tio/Tia** (recreador) | `colaborador` | Celular | "Quais festas eu tenho? Confirmo? Quanto recebo segunda?" |
 | **Coordenador** | `colaborador` (cargo coordenador) | Celular | Comanda a festa no local; mesmo fluxo, cachê maior |
-| **Escritório** | `admin` | Desktop | Montar festas, escalar equipe, fechar pagamento, controlar frota/estoque |
+| **Proprietária** | `dona` | Desktop | Tudo, e é quem define o acesso das outras |
+| **Gerente** | `gerente` | Desktop | Montar festas, escalar equipe, fechar pagamento, controlar frota/estoque |
+| **Funcionário(a)** | `funcionario` | Desktop | A mesma operação, sem Pagamentos e sem Ordem de Serviço |
 
 ## Glossário (vocabulário do domínio)
 

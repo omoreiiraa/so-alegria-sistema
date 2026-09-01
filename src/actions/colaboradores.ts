@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { editarColaboradorSchema } from "@/lib/validations/cadastro";
 import { toE164 } from "@/lib/utils/phone";
 import { onlyDigitsCep } from "@/lib/utils/cep";
@@ -94,7 +94,7 @@ function ouNulo(v: string | undefined) {
  * `ativo` ficam de fora e continuam só nas RPCs `SECURITY DEFINER` (regra 3).
  */
 export async function atualizarColaborador(profileId: string, input: unknown) {
-  await requireAdmin();
+  await requireEquipe();
   const parsed = editarColaboradorSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
@@ -115,6 +115,7 @@ export async function atualizarColaborador(profileId: string, input: unknown) {
       nome_tio: ouNulo(d.nome_tio),
       rg: d.rg === "" ? null : onlyRg(d.rg),
       cpf: d.cpf === "" ? null : onlyDigits(d.cpf),
+      cnpj: d.cnpj === "" ? null : onlyDigits(d.cnpj),
       email: d.email === "" ? null : d.email.toLowerCase(),
       celular,
       cep: d.cep === "" ? null : onlyDigitsCep(d.cep),

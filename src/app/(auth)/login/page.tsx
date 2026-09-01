@@ -15,7 +15,7 @@ export default async function LoginPage({
       <CardHeader className="text-center">
         <CardTitle className="font-display text-2xl">Bem-vindo de volta</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Entre para ver sua escala e pagamentos.
+          Entre para gerenciar festas, equipe e pagamentos.
         </p>
       </CardHeader>
       <CardContent>

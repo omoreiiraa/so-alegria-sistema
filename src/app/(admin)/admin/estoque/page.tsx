@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
 import { EstoqueManager, type ItemEstoque } from "@/components/admin/estoque-manager";
@@ -7,7 +7,7 @@ import { EstoqueManager, type ItemEstoque } from "@/components/admin/estoque-man
 export const metadata: Metadata = { title: "Estoque" };
 
 export default async function EstoquePage() {
-  await requireAdmin();
+  await requireEquipe();
   const supabase = await createClient();
 
   const [{ data: itens }, { data: psi }] = await Promise.all([

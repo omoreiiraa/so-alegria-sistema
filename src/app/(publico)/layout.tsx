@@ -1,4 +1,4 @@
-import { Wordmark } from "@/components/brand/wordmark";
+import { Logo } from "@/components/brand/logo";
 
 /**
  * Área aberta, alcançada só por link tokenizado enviado no WhatsApp.
@@ -13,7 +13,7 @@ export default function PublicoLayout({
     <div className="flex min-h-dvh flex-col bg-muted/30">
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-2xl items-center px-4 py-4">
-          <Wordmark className="text-xl" />
+          <Logo className="size-11" />
         </div>
       </header>
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">{children}</main>

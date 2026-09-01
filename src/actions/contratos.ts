@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const BUCKET = "contratos";
@@ -21,7 +21,7 @@ function extensaoDe(nome: string): string | null {
  * no meio não deixar a festa sem arquivo nenhum.
  */
 export async function anexarOrcamentoAssinado(partyId: string, formData: FormData) {
-  await requireAdmin();
+  await requireEquipe();
   const file = formData.get("arquivo");
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Selecione um arquivo." };
@@ -63,7 +63,7 @@ export async function anexarOrcamentoAssinado(partyId: string, formData: FormDat
 }
 
 export async function removerOrcamentoAssinado(partyId: string) {
-  await requireAdmin();
+  await requireEquipe();
   const supabase = await createClient();
 
   const { data: festa } = await supabase
@@ -88,7 +88,7 @@ export async function removerOrcamentoAssinado(partyId: string) {
 
 /** URL assinada e temporária para rever o que o cliente devolveu. */
 export async function urlOrcamentoAssinado(partyId: string) {
-  await requireAdmin();
+  await requireEquipe();
   const supabase = await createClient();
 
   const { data: festa } = await supabase

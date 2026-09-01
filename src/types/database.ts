@@ -582,6 +582,7 @@ export type Database = {
           cep: string | null
           chave_pix: string | null
           cidade: string | null
+          cnpj: string | null
           complemento: string | null
           cpf: string | null
           created_at: string
@@ -606,6 +607,7 @@ export type Database = {
           cep?: string | null
           chave_pix?: string | null
           cidade?: string | null
+          cnpj?: string | null
           complemento?: string | null
           cpf?: string | null
           created_at?: string
@@ -630,6 +632,7 @@ export type Database = {
           cep?: string | null
           chave_pix?: string | null
           cidade?: string | null
+          cnpj?: string | null
           complemento?: string | null
           cpf?: string | null
           created_at?: string
@@ -884,7 +887,10 @@ export type Database = {
       }
       delete_colaborador: { Args: { p_profile: string }; Returns: undefined }
       delete_stock_item: { Args: { p_item: string }; Returns: string }
-      is_admin: { Args: never; Returns: boolean }
+      auth_role: { Args: never; Returns: string }
+      is_gestao: { Args: never; Returns: boolean }
+      is_dona: { Args: never; Returns: boolean }
+      is_equipe: { Args: never; Returns: boolean }
       mark_payment_paid: { Args: { p_payment_id: string }; Returns: undefined }
       resolve_link: { Args: { p_token_hash: string }; Returns: Json }
       responder_convite_by_token: {
@@ -945,7 +951,7 @@ export type Database = {
         | "devolucao"
         | "perda"
         | "ajuste"
-      user_role: "admin" | "colaborador"
+      user_role: "admin" | "dona" | "gerente" | "funcionario" | "colaborador"
       vehicle_status: "disponivel" | "em_uso" | "manutencao"
       vehicle_type: "carro" | "van"
     }
@@ -1104,7 +1110,7 @@ export const Constants = {
         "perda",
         "ajuste",
       ],
-      user_role: ["admin", "colaborador"],
+      user_role: ["admin", "dona", "gerente", "funcionario", "colaborador"],
       vehicle_status: ["disponivel", "em_uso", "manutencao"],
       vehicle_type: ["carro", "van"],
     },

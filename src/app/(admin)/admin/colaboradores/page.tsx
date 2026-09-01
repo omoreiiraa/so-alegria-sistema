@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Users, ChevronRight } from "lucide-react";
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState } from "@/components/common/empty-state";
@@ -70,7 +70,7 @@ function ColabCard({ c }: { c: Colab }) {
 }
 
 export default async function ColaboradoresPage() {
-  await requireAdmin();
+  await requireEquipe();
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")

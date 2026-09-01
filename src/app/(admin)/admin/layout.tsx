@@ -1,17 +1,21 @@
-import { requireAdmin } from "@/lib/auth";
+import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminMobileNav } from "@/components/admin/admin-mobile-nav";
 import { NotificationBell, type Notificacao } from "@/components/admin/notification-bell";
-import { BrandBadge, Wordmark } from "@/components/brand/wordmark";
+import { Logo } from "@/components/brand/logo";
 import { LogoutButton } from "@/components/common/logout-button";
+import { ROLE_LABEL } from "@/types/domain";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { profile } = await requireAdmin();
+  // O layout é o piso comum do escritório: quem entra aqui tem login. Pagamentos
+  // e Ordem de Serviço exigem gestão, cada um no seu `require*` (src/lib/auth.ts).
+  const { profile } = await requireEquipe();
+
   const supabase = await createClient();
   const [{ data: notifs }, { count: unread }] = await Promise.all([
     supabase
@@ -28,16 +32,18 @@ export default async function AdminLayout({
   return (
     <div className="theme-admin flex min-h-dvh bg-background text-foreground">
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:flex">
-        <div className="flex items-center gap-2.5 px-5 py-5">
-          <BrandBadge className="size-9" />
-          <Wordmark className="text-base text-sidebar-foreground" subtitle={false} />
+        <div className="flex justify-center px-5 py-6">
+          <Logo className="size-[72px]" />
         </div>
         <div className="flex-1 px-3">
-          <AdminNav />
+          <AdminNav role={profile.role} />
         </div>
         <div className="border-t border-sidebar-border px-4 py-3">
           <div className="mb-2 truncate text-xs text-sidebar-foreground/60">
             {profile.nome_completo}
+            <span className="block text-sidebar-foreground/40">
+              {ROLE_LABEL[profile.role]}
+            </span>
           </div>
           <LogoutButton label="Sair" />
         </div>
@@ -46,8 +52,8 @@ export default async function AdminLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-card px-4 py-3 lg:px-8">
           <div className="flex items-center gap-2 lg:hidden">
-            <AdminMobileNav />
-            <Wordmark className="text-base" subtitle={false} />
+            <AdminMobileNav role={profile.role} />
+            <Logo className="size-9" />
           </div>
           <div className="hidden lg:block" />
           <div className="flex items-center gap-1">

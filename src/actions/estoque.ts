@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { requireEquipe } from "@/lib/auth";
 
 const itemSchema = z.object({
   nome: z.string().trim().min(1, "Informe o nome do item"),
@@ -21,6 +22,7 @@ function toRow(d: z.infer<typeof itemSchema>) {
 }
 
 export async function criarItem(input: unknown) {
+  await requireEquipe();
   const parsed = itemSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
   const supabase = await createClient();
@@ -31,6 +33,7 @@ export async function criarItem(input: unknown) {
 }
 
 export async function atualizarItem(id: string, input: unknown) {
+  await requireEquipe();
   const parsed = itemSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
   const supabase = await createClient();
@@ -46,6 +49,7 @@ export async function atualizarItem(id: string, input: unknown) {
  * banco seguia contando um patrimônio que o escritório já tinha dado baixa.
  */
 export async function removerItem(id: string) {
+  await requireEquipe();
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("delete_stock_item", { p_item: id });
   if (error) {
@@ -62,6 +66,7 @@ export async function removerItem(id: string) {
 
 /** Vincula um item à festa (baixa temporária; trigger registra saida_festa). */
 export async function vincularMaterial(partyId: string, stockItemId: string, qtd: number) {
+  await requireEquipe();
   if (!Number.isInteger(qtd) || qtd <= 0) return { error: "Quantidade inválida" };
   const supabase = await createClient();
   const { error } = await supabase
@@ -77,6 +82,7 @@ export async function vincularMaterial(partyId: string, stockItemId: string, qtd
 }
 
 export async function removerMaterial(id: string, partyId: string) {
+  await requireEquipe();
   const supabase = await createClient();
   const { error } = await supabase.from("party_stock_items").delete().eq("id", id);
   if (error) return { error: "Não foi possível remover o item." };
@@ -92,6 +98,7 @@ export async function registrarDevolucao(
   qtdDevolvida: number,
   qtdPerdida: number,
 ) {
+  await requireEquipe();
   if (qtdDevolvida < 0 || qtdPerdida < 0) return { error: "Valores inválidos" };
   const supabase = await createClient();
   const { error } = await supabase
