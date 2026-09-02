@@ -138,41 +138,51 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
           description="Cadastre materiais (com foto) para levar às festas e controlar a devolução."
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(17rem,100%),1fr))] gap-3">
           {itens.map((i) => (
-            <Card key={i.id} className="overflow-hidden">
-              <div className="flex items-stretch">
-                <div className="flex size-24 shrink-0 items-center justify-center bg-muted">
+            <Card key={i.id}>
+              <CardContent className="flex items-stretch gap-3 p-4">
+                <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
                   {i.fotoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={i.fotoUrl} alt={i.nome} className="size-24 object-cover" />
+                    <img src={i.fotoUrl} alt={i.nome} className="size-full object-cover" />
                   ) : (
                     <Package className="size-8 text-muted-foreground/50" />
                   )}
                 </div>
-                <CardContent className="flex flex-1 items-start justify-between gap-2 p-3">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{i.nome}</p>
-                    {i.categoria && (
-                      <p className="text-xs text-muted-foreground">{i.categoria}</p>
-                    )}
-                    <div className="mt-1.5 text-xs">
-                      <span className="font-semibold text-verde-escuro">{i.disponivel}</span>
-                      <span className="text-muted-foreground"> disp · {i.emUso} em uso · {i.quantidade_total} total</span>
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="line-clamp-2 font-medium leading-snug break-words">{i.nome}</p>
+                      {i.categoria && (
+                        <p className="truncate text-xs text-muted-foreground">{i.categoria}</p>
+                      )}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => editar(i)}
+                      aria-label={`Editar ${i.nome}`}
+                      className="-m-1 shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    >
+                      <Pencil className="size-4" />
+                    </button>
                   </div>
-                  <button type="button" onClick={() => editar(i)} aria-label="Editar" className="text-muted-foreground hover:text-foreground">
-                    <Pencil className="size-4" />
-                  </button>
-                </CardContent>
-              </div>
+                  <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                    <span className="whitespace-nowrap font-semibold text-verde-escuro">
+                      {i.disponivel} disp.
+                    </span>
+                    <span className="whitespace-nowrap">{i.emUso} em uso</span>
+                    <span className="whitespace-nowrap">{i.quantidade_total} total</span>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
           ))}
         </div>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editId ? "Editar item" : "Novo item"}</DialogTitle>
           </DialogHeader>
