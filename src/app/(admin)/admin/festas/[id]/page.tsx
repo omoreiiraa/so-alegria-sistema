@@ -187,7 +187,7 @@ export default async function FestaDetailPage({
       .from("party_stock_items")
       .select("id, qtd_levada, qtd_devolvida, qtd_perdida, stock_items ( nome )")
       .eq("party_id", id),
-    supabase.from("stock_items").select("id, nome").eq("ativo", true).order("nome"),
+    supabase.from("stock_items").select("id, nome, categoria").eq("ativo", true).order("nome"),
   ]);
 
   const materiais: Material[] = (
@@ -205,7 +205,7 @@ export default async function FestaDetailPage({
     qtdDevolvida: r.qtd_devolvida,
     qtdPerdida: r.qtd_perdida,
   }));
-  const itensEstoque = (iData ?? []) as { id: string; nome: string }[];
+  const itensEstoque = (iData ?? []) as { id: string; nome: string; categoria: string | null }[];
   const festaRealizada = festa.status === "realizada" || festa.status === "paga";
 
   const assignments = (aData ?? []) as unknown as Assignment[];

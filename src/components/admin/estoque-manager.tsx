@@ -24,7 +24,9 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/common/empty-state";
 import { cn } from "@/lib/utils";
+import { normalizarTexto } from "@/lib/utils/texto";
 import { CATEGORIAS_ESTOQUE, eCategoriaEstoque } from "@/types/domain";
+import { FiltroCategorias } from "@/components/admin/filtro-categorias";
 import { createClient } from "@/lib/supabase/browser";
 import { compressImage } from "@/lib/utils/image";
 import { criarItem, atualizarItem, removerItem } from "@/actions/estoque";
@@ -56,9 +58,9 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
   const [filtro, setFiltro] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
 
-  const termo = normalizar(busca);
+  const termo = normalizarTexto(busca);
   const porBusca = useMemo(
-    () => (termo ? itens.filter((i) => normalizar(i.nome).includes(termo)) : itens),
+    () => (termo ? itens.filter((i) => normalizarTexto(i.nome).includes(termo)) : itens),
     [itens, termo],
   );
 
@@ -72,14 +74,22 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
     return m;
   }, [porBusca]);
 
-  /** Categorias gravadas antes da lista fechada — seguem filtráveis. */
-  const antigas = useMemo(
-    () =>
-      [...new Set(itens.map((i) => (i.categoria ?? "").trim()))]
-        .filter((c) => c !== "" && !eCategoriaEstoque(c))
-        .sort(),
-    [itens],
-  );
+  /** Toda a taxonomia, mais o que foi gravado antes dela. Alimenta o menu. */
+  const categoriasTodas = useMemo(() => {
+    const gravadas = new Set(itens.map((i) => (i.categoria ?? "").trim()));
+    const lista: string[] = [
+      ...CATEGORIAS_ESTOQUE,
+      ...[...gravadas].filter((c) => c !== "" && !eCategoriaEstoque(c)).sort(),
+    ];
+    if (gravadas.has("")) lista.push("");
+    return lista;
+  }, [itens]);
+
+  /** Só o que tem item cadastrado — os chips não mostram categoria vazia. */
+  const categoriasComItem = useMemo(() => {
+    const gravadas = new Set(itens.map((i) => (i.categoria ?? "").trim()));
+    return categoriasTodas.filter((c) => gravadas.has(c));
+  }, [categoriasTodas, itens]);
 
   const visiveis = useMemo(
     () =>
@@ -188,6 +198,14 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
             className="pl-9"
           />
         </div>
+        {itens.length > 0 && (
+          <FiltroCategorias
+            opcoes={categoriasTodas.map((c) => ({ valor: c, total: contagem.get(c) ?? 0 }))}
+            total={porBusca.length}
+            filtro={filtro}
+            onChange={setFiltro}
+          />
+        )}
         <Button onClick={novo} className="bg-verde font-semibold text-white hover:bg-verde-escuro">
           <Plus className="size-4" /> Novo item
         </Button>
@@ -198,26 +216,16 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
           <Chip ativo={filtro === null} total={porBusca.length} onClick={() => setFiltro(null)}>
             Todas
           </Chip>
-          {CATEGORIAS_ESTOQUE.map((c) => (
+          {categoriasComItem.map((c) => (
             <Chip
-              key={c}
+              key={c || "sem"}
               ativo={filtro === c}
               total={contagem.get(c) ?? 0}
               onClick={() => setFiltro(c)}
             >
-              {c}
+              {c || "Sem categoria"}
             </Chip>
           ))}
-          {antigas.map((c) => (
-            <Chip key={c} ativo={filtro === c} total={contagem.get(c) ?? 0} onClick={() => setFiltro(c)}>
-              {c}
-            </Chip>
-          ))}
-          {itens.some((i) => !(i.categoria ?? "").trim()) && (
-            <Chip ativo={filtro === ""} total={contagem.get("") ?? 0} onClick={() => setFiltro("")}>
-              Sem categoria
-            </Chip>
-          )}
         </div>
       )}
 
@@ -384,13 +392,4 @@ function Chip({
       </span>
     </button>
   );
-}
-
-/** Busca sem acento e sem caixa: "chapeu" acha "CHAPÉU". */
-function normalizar(s: string) {
-  return s
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
 }

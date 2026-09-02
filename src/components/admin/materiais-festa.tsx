@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { X, Plus, Check } from "lucide-react";
+import { X, Plus, Check, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { normalizarTexto } from "@/lib/utils/texto";
+import { FiltroCategorias } from "@/components/admin/filtro-categorias";
+import { CATEGORIAS_ESTOQUE, eCategoriaEstoque } from "@/types/domain";
 import {
   vincularMaterial,
   removerMaterial,
@@ -32,14 +35,54 @@ export function MateriaisFesta({
   partyId: string;
   realizada: boolean;
   materiais: Material[];
-  itens: { id: string; nome: string }[];
+  itens: { id: string; nome: string; categoria: string | null }[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [sel, setSel] = useState("");
   const [qtd, setQtd] = useState("");
+  /** null = todas; "" = itens sem categoria. */
+  const [filtro, setFiltro] = useState<string | null>(null);
+  const [busca, setBusca] = useState("");
 
-  const disponiveis = itens.filter((i) => !materiais.some((m) => m.nome === i.nome));
+  const disponiveis = useMemo(
+    () => itens.filter((i) => !materiais.some((m) => m.nome === i.nome)),
+    [itens, materiais],
+  );
+
+  const termo = normalizarTexto(busca);
+  const porBusca = useMemo(
+    () => (termo ? disponiveis.filter((i) => normalizarTexto(i.nome).includes(termo)) : disponiveis),
+    [disponiveis, termo],
+  );
+
+  const contagem = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const i of porBusca) {
+      const c = (i.categoria ?? "").trim();
+      m.set(c, (m.get(c) ?? 0) + 1);
+    }
+    return m;
+  }, [porBusca]);
+
+  /** Só as categorias que têm material para levar — aqui a lista fechada seria ruído. */
+  const categorias = useMemo(() => {
+    const presentes = new Set(disponiveis.map((i) => (i.categoria ?? "").trim()));
+    const ordenadas: string[] = [
+      ...CATEGORIAS_ESTOQUE.filter((c) => presentes.has(c)),
+      ...[...presentes].filter((c) => c !== "" && !eCategoriaEstoque(c)).sort(),
+    ];
+    if (presentes.has("")) ordenadas.push("");
+    return ordenadas;
+  }, [disponiveis]);
+
+  const listagem = useMemo(
+    () =>
+      filtro === null ? porBusca : porBusca.filter((i) => (i.categoria ?? "").trim() === filtro),
+    [porBusca, filtro],
+  );
+
+  const selecionado = itens.find((i) => i.id === sel);
 
   function adicionar() {
     if (!sel || !qtd) return;
@@ -103,25 +146,73 @@ export function MateriaisFesta({
       {!realizada && disponiveis.length > 0 && (
         <div className="space-y-2 rounded-lg border border-dashed border-border p-3">
           <Label>Adicionar material</Label>
-          <div className="flex flex-wrap gap-1.5">
-            {disponiveis.map((i) => (
-              <button
-                key={i.id}
-                type="button"
-                onClick={() => setSel(i.id === sel ? "" : i.id)}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                  sel === i.id ? "border-verde bg-verde/10 text-verde-escuro" : "border-border hover:bg-muted",
-                )}
-              >
-                {i.nome}
-              </button>
-            ))}
+
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar material…"
+                aria-label="Buscar material pelo nome"
+                className="pl-8"
+              />
+            </div>
+            {categorias.length > 1 && (
+              <FiltroCategorias
+                opcoes={categorias.map((c) => ({ valor: c, total: contagem.get(c) ?? 0 }))}
+                total={porBusca.length}
+                filtro={filtro}
+                onChange={setFiltro}
+              />
+            )}
           </div>
+
+          {filtro !== null && (
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span>
+                Filtrando por{" "}
+                <span className="font-medium text-verde-escuro">{filtro || "Sem categoria"}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setFiltro(null)}
+                aria-label="Limpar filtro de categoria"
+                className="hover:text-foreground"
+              >
+                <X className="size-3" />
+              </button>
+            </div>
+          )}
+
+          {listagem.length === 0 ? (
+            <p className="py-3 text-center text-xs text-muted-foreground">
+              Nenhum material encontrado.
+            </p>
+          ) : (
+            <div className="flex max-h-56 flex-wrap gap-1.5 overflow-y-auto">
+              {listagem.map((i) => (
+                <button
+                  key={i.id}
+                  type="button"
+                  onClick={() => setSel(i.id === sel ? "" : i.id)}
+                  className={cn(
+                    "h-fit rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                    sel === i.id ? "border-verde bg-verde/10 text-verde-escuro" : "border-border hover:bg-muted",
+                  )}
+                >
+                  {i.nome}
+                </button>
+              ))}
+            </div>
+          )}
+
           {sel && (
-            <div className="flex items-end gap-2">
+            <div className="flex items-end gap-2 border-t border-border pt-2">
               <div className="flex-1 space-y-1">
-                <Label htmlFor="qtd-mat" className="text-xs">Quantidade</Label>
+                <Label htmlFor="qtd-mat" className="text-xs">
+                  Quantidade {selecionado ? `de ${selecionado.nome}` : ""}
+                </Label>
                 <Input id="qtd-mat" type="number" inputMode="numeric" value={qtd} onChange={(e) => setQtd(e.target.value)} />
               </div>
               <Button onClick={adicionar} disabled={pending || !qtd} className="bg-verde font-semibold text-white hover:bg-verde-escuro">
