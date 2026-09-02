@@ -194,6 +194,29 @@ export const VEHICLE_STATUS_LABEL: Record<VehicleStatus, string> = {
   manutencao: "Manutenção",
 };
 
+/**
+ * Categorias do estoque. Lista fechada, definida pelo escritório: alimenta o
+ * filtro da tela e a seleção no cadastro do item, para o texto não variar.
+ */
+export const CATEGORIAS_ESTOQUE = [
+  "OFICINA",
+  "RECREAÇÃO",
+  "BALADINHA KIDS BASICA",
+  "BALADINHA KIDS SUPERIOR",
+  "ESPAÇO KIDS DE MADEIRA",
+  "ESPAÇO KIDS COLORIDO",
+  "CAMA ELASTICA",
+  "PISCINA DE BOLINHA BRANCA",
+  "PISCINA DE BOLINHA COLORIDA",
+  "SPA KIDS",
+] as const;
+
+export type CategoriaEstoque = (typeof CATEGORIAS_ESTOQUE)[number];
+
+/** Itens antigos podem ter categoria fora da lista; elas continuam visíveis. */
+export const eCategoriaEstoque = (c: string): c is CategoriaEstoque =>
+  (CATEGORIAS_ESTOQUE as readonly string[]).includes(c);
+
 export const DIAS_SEMANA_CURTO = [
   "Dom",
   "Seg",

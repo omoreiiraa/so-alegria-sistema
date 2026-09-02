@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Package, Pencil, ImagePlus } from "lucide-react";
+import { Plus, Package, Pencil, ImagePlus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { EmptyState } from "@/components/common/empty-state";
+import { cn } from "@/lib/utils";
+import { CATEGORIAS_ESTOQUE, eCategoriaEstoque } from "@/types/domain";
 import { createClient } from "@/lib/supabase/browser";
 import { compressImage } from "@/lib/utils/image";
 import { criarItem, atualizarItem, removerItem } from "@/actions/estoque";
@@ -43,6 +52,49 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
   const [fotoPath, setFotoPath] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  /** null = todas; "" = itens sem categoria. */
+  const [filtro, setFiltro] = useState<string | null>(null);
+  const [busca, setBusca] = useState("");
+
+  const termo = normalizar(busca);
+  const porBusca = useMemo(
+    () => (termo ? itens.filter((i) => normalizar(i.nome).includes(termo)) : itens),
+    [itens, termo],
+  );
+
+  // As contagens seguem a busca, para o chip dizer quantos há de fato na tela.
+  const contagem = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const i of porBusca) {
+      const c = (i.categoria ?? "").trim();
+      m.set(c, (m.get(c) ?? 0) + 1);
+    }
+    return m;
+  }, [porBusca]);
+
+  /** Categorias gravadas antes da lista fechada — seguem filtráveis. */
+  const antigas = useMemo(
+    () =>
+      [...new Set(itens.map((i) => (i.categoria ?? "").trim()))]
+        .filter((c) => c !== "" && !eCategoriaEstoque(c))
+        .sort(),
+    [itens],
+  );
+
+  const visiveis = useMemo(
+    () =>
+      filtro === null ? porBusca : porBusca.filter((i) => (i.categoria ?? "").trim() === filtro),
+    [porBusca, filtro],
+  );
+
+  /** Mantém a categoria atual do item na lista, mesmo fora da taxonomia. */
+  const opcoesCategoria = useMemo(
+    () =>
+      categoria && !eCategoriaEstoque(categoria)
+        ? [...CATEGORIAS_ESTOQUE, categoria]
+        : [...CATEGORIAS_ESTOQUE],
+    [categoria],
+  );
 
   function novo() {
     setEditId(null);
@@ -125,11 +177,49 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative min-w-56 flex-1">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar item pelo nome…"
+            aria-label="Buscar item pelo nome"
+            className="pl-9"
+          />
+        </div>
         <Button onClick={novo} className="bg-verde font-semibold text-white hover:bg-verde-escuro">
           <Plus className="size-4" /> Novo item
         </Button>
       </div>
+
+      {itens.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <Chip ativo={filtro === null} total={porBusca.length} onClick={() => setFiltro(null)}>
+            Todas
+          </Chip>
+          {CATEGORIAS_ESTOQUE.map((c) => (
+            <Chip
+              key={c}
+              ativo={filtro === c}
+              total={contagem.get(c) ?? 0}
+              onClick={() => setFiltro(c)}
+            >
+              {c}
+            </Chip>
+          ))}
+          {antigas.map((c) => (
+            <Chip key={c} ativo={filtro === c} total={contagem.get(c) ?? 0} onClick={() => setFiltro(c)}>
+              {c}
+            </Chip>
+          ))}
+          {itens.some((i) => !(i.categoria ?? "").trim()) && (
+            <Chip ativo={filtro === ""} total={contagem.get("") ?? 0} onClick={() => setFiltro("")}>
+              Sem categoria
+            </Chip>
+          )}
+        </div>
+      )}
 
       {itens.length === 0 ? (
         <EmptyState
@@ -137,9 +227,23 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
           title="Estoque vazio"
           description="Cadastre materiais (com foto) para levar às festas e controlar a devolução."
         />
+      ) : visiveis.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center">
+          <p className="text-sm text-muted-foreground">Nenhum item encontrado.</p>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setBusca("");
+              setFiltro(null);
+            }}
+            className="mt-2"
+          >
+            Limpar busca e filtro
+          </Button>
+        </div>
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(min(17rem,100%),1fr))] gap-3">
-          {itens.map((i) => (
+          {visiveis.map((i) => (
             <Card key={i.id}>
               <CardContent className="flex items-stretch gap-3 p-4">
                 <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
@@ -210,10 +314,22 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
               <Label htmlFor="nome">Nome</Label>
               <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex.: Caixa de som" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-[1fr_110px] gap-3">
               <div className="space-y-2">
                 <Label htmlFor="categoria">Categoria</Label>
-                <Input id="categoria" value={categoria} onChange={(e) => setCategoria(e.target.value)} placeholder="Som, brinquedo…" />
+                <Select value={categoria} onValueChange={(v) => setCategoria(String(v ?? ""))}>
+                  <SelectTrigger id="categoria" className="w-full">
+                    <SelectValue placeholder="Sem categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sem categoria</SelectItem>
+                    {opcoesCategoria.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="qtd">Quantidade total</Label>
@@ -237,4 +353,44 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
       </Dialog>
     </div>
   );
+}
+
+function Chip({
+  ativo,
+  total,
+  onClick,
+  children,
+}: {
+  ativo: boolean;
+  total: number;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={total === 0 && !ativo}
+      aria-pressed={ativo}
+      className={cn(
+        "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+        ativo ? "border-verde bg-verde/10 text-verde-escuro" : "border-border hover:bg-muted",
+        total === 0 && !ativo && "cursor-not-allowed opacity-40 hover:bg-transparent",
+      )}
+    >
+      {children}
+      <span className={cn("tabular-nums", ativo ? "text-verde-escuro/70" : "text-muted-foreground")}>
+        {total}
+      </span>
+    </button>
+  );
+}
+
+/** Busca sem acento e sem caixa: "chapeu" acha "CHAPÉU". */
+function normalizar(s: string) {
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 }
