@@ -205,10 +205,10 @@ export const CATEGORIAS_ESTOQUE = [
   "BALADINHA KIDS SUPERIOR",
   "ESPAÇO KIDS DE MADEIRA",
   "ESPAÇO KIDS COLORIDO",
-  "CAMA ELASTICA",
   "PISCINA DE BOLINHA BRANCA",
-  "PISCINA DE BOLINHA COLORIDA",
   "SPA KIDS",
+  "Brinquedo inflavel",
+  "Brinquedo locação",
 ] as const;
 
 export type CategoriaEstoque = (typeof CATEGORIAS_ESTOQUE)[number];
