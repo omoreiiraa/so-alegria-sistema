@@ -1,25 +1,27 @@
-import {
-  PDFDocument,
-  StandardFonts,
-  rgb,
-  type PDFFont,
-} from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 import { embutirLogo } from "./logo";
 import { formatBRL } from "@/lib/utils/money";
 import { formatDate, formatTime } from "@/lib/utils/date";
+import {
+  A4,
+  CINZA,
+  GRAFITE,
+  LARANJA,
+  LARGURA_UTIL,
+  LINHA,
+  MARGEM,
+  VERDE,
+  sanitize,
+  wrap,
+  wrapMultilinha,
+} from "./estilo";
+import {
+  CONDICOES_DE_CONTRATACAO,
+  FORMA_DE_PAGAMENTO,
+  OBSERVACOES_IMPORTANTES,
+} from "./condicoes";
 
 export const CNPJ_SO_ALEGRIA = "03.103.012/0001-30";
-
-/** Cores da marca (docs/05-design-system.md) convertidas para o espaço do PDF. */
-const VERDE = rgb(0.13, 0.61, 0.35);
-const LARANJA = rgb(0.95, 0.55, 0.13);
-const GRAFITE = rgb(0.15, 0.15, 0.17);
-const CINZA = rgb(0.42, 0.42, 0.46);
-const LINHA = rgb(0.85, 0.85, 0.87);
-
-const A4 = { width: 595.28, height: 841.89 };
-const MARGEM = 48;
-const LARGURA_UTIL = A4.width - MARGEM * 2;
 
 export type OrcamentoData = {
   numero: string;
@@ -35,40 +37,10 @@ export type OrcamentoData = {
   temaFesta: string | null;
   qtdRecreadores: number | null;
   valorFesta: number | null;
+  /** Observação escrita pelo escritório para o cliente ler. */
+  observacoes: string | null;
   materiais: { nome: string; quantidade: number }[];
 };
-
-/**
- * As fontes padrão do PDF usam WinAnsi, que cobre o português mas quebra em
- * caracteres fora do Latin-1 (emoji, aspas curvas). Sanitiza antes de desenhar.
- */
-function sanitize(text: string): string {
-  return text
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, "-")
-    .replace(/…/g, "...")
-    .replace(/[^\x00-\xFF]/g, "");
-}
-
-/** Quebra o texto em linhas que caibam na largura informada. */
-function wrap(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
-  const palavras = sanitize(text).split(/\s+/).filter(Boolean);
-  if (palavras.length === 0) return [""];
-  const linhas: string[] = [];
-  let atual = "";
-  for (const palavra of palavras) {
-    const tentativa = atual ? `${atual} ${palavra}` : palavra;
-    if (font.widthOfTextAtSize(tentativa, size) <= maxWidth) {
-      atual = tentativa;
-    } else {
-      if (atual) linhas.push(atual);
-      atual = palavra;
-    }
-  }
-  if (atual) linhas.push(atual);
-  return linhas;
-}
 
 export async function gerarOrcamentoPDF(d: OrcamentoData): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
@@ -214,6 +186,56 @@ export async function gerarOrcamentoPDF(d: OrcamentoData): Promise<Uint8Array> {
     y -= linhasValor.length * 13 + 5;
   };
 
+  /** Texto corrido do documento, quebrado na largura útil. */
+  const paragrafo = (
+    valor: string,
+    opts: { font?: PDFFont; color?: typeof GRAFITE; multilinha?: boolean } = {},
+  ) => {
+    const size = 9;
+    const fonte = opts.font ?? regular;
+    const linhas = (opts.multilinha ? wrapMultilinha : wrap)(
+      valor,
+      fonte,
+      size,
+      LARGURA_UTIL,
+    );
+    for (const l of linhas) {
+      garantirEspaco(12);
+      page.drawText(sanitize(l), {
+        x: MARGEM,
+        y,
+        size,
+        font: fonte,
+        color: opts.color ?? GRAFITE,
+      });
+      y -= 12;
+    }
+    y -= 5;
+  };
+
+  /** Item de lista, com marcador laranja e recuo. */
+  const topico = (valor: string) => {
+    const size = 9;
+    const RECUO = 14;
+    const linhas = wrap(valor, regular, size, LARGURA_UTIL - RECUO);
+    linhas.forEach((l, i) => {
+      garantirEspaco(12);
+      // O marcador só na primeira linha; a continuação alinha pelo recuo.
+      if (i === 0) {
+        page.drawCircle({ x: MARGEM + 3, y: y + 3, size: 1.8, color: LARANJA });
+      }
+      page.drawText(sanitize(l), {
+        x: MARGEM + RECUO,
+        y,
+        size,
+        font: regular,
+        color: GRAFITE,
+      });
+      y -= 12;
+    });
+    y -= 4;
+  };
+
   secao("DADOS DO CLIENTE");
   linha("Cliente", d.clienteNome ?? "-");
   linha("Telefone de contato", d.telefoneContato ?? "-");
@@ -315,6 +337,21 @@ export async function gerarOrcamentoPDF(d: OrcamentoData): Promise<Uint8Array> {
     });
     y = base - 16;
   }
+
+  // ── Observações escritas para o cliente ──────────────────────────────────
+  if (d.observacoes && d.observacoes.trim()) {
+    secao("OBSERVAÇÕES");
+    paragrafo(d.observacoes.trim(), { multilinha: true });
+  }
+
+  // ── Condições de contratação (texto fixo, ver ./condicoes.ts) ────────────
+  secao("FORMA DE PAGAMENTO");
+  paragrafo(FORMA_DE_PAGAMENTO, { font: bold });
+  for (const condicao of CONDICOES_DE_CONTRATACAO) paragrafo(condicao);
+
+  secao("OBSERVAÇÕES IMPORTANTES");
+  for (const observacao of OBSERVACOES_IMPORTANTES) topico(observacao);
+  y -= 6;
 
   // ── Rodapé (em todas as páginas, inclusive quando a lista pagina) ────────
   const rodape = sanitize(

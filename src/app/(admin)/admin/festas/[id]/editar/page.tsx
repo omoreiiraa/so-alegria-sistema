@@ -48,6 +48,7 @@ export default async function EditarFestaPage({
     is_viagem: festa.is_viagem,
     observacoes: festa.observacoes ?? "",
     valor_festa: festa.valor_festa != null ? formatBRLInput(String(Math.round(festa.valor_festa * 100))) : "",
+    observacoes_orcamento: festa.observacoes_orcamento ?? "",
     telefone_contato: formatPhoneNational(festa.telefone_contato),
     tema_festa: festa.tema_festa ?? "",
     qtd_recreadores: festa.qtd_recreadores?.toString() ?? "",

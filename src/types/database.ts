@@ -129,6 +129,7 @@ export type Database = {
           logradouro: string | null
           numero: string | null
           observacoes: string | null
+          observacoes_orcamento: string | null
           orcamento_assinado_path: string | null
           partner_id: string | null
           party_type_id: string | null
@@ -160,6 +161,7 @@ export type Database = {
           logradouro?: string | null
           numero?: string | null
           observacoes?: string | null
+          observacoes_orcamento?: string | null
           orcamento_assinado_path?: string | null
           partner_id?: string | null
           party_type_id?: string | null
@@ -191,6 +193,7 @@ export type Database = {
           logradouro?: string | null
           numero?: string | null
           observacoes?: string | null
+          observacoes_orcamento?: string | null
           orcamento_assinado_path?: string | null
           partner_id?: string | null
           party_type_id?: string | null

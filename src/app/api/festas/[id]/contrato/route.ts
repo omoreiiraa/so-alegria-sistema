@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionProfile } from "@/lib/auth";
+import { eGestao } from "@/types/domain";
 import { createClient } from "@/lib/supabase/server";
 import { gerarContratoPDF, type ArquivoAnexado } from "@/lib/pdf/contrato";
 import { gerarOrcamentoPDF } from "@/lib/pdf/orcamento";
@@ -19,7 +20,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getSessionProfile();
-  if (!session || session.profile.role !== "admin") {
+  if (!session || !eGestao(session.profile.role)) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
 
@@ -59,7 +60,11 @@ export async function GET(
 
   let pdf: Uint8Array;
   try {
-    pdf = await gerarContratoPDF(anexo, dados.dadosEmpresa);
+    pdf = await gerarContratoPDF(anexo, dados.dadosEmpresa, {
+      // O orçamento gerado aqui já traz as condições; o arquivo do cliente não.
+      incluirFolha: !!caminho,
+      observacoes: dados.festa.observacoes_orcamento,
+    });
   } catch (e) {
     console.error("Falha ao montar o contrato:", e);
     return NextResponse.json(

@@ -2,6 +2,18 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 import { embutirLogo } from "./logo";
 import { CNPJ_SO_ALEGRIA } from "./orcamento";
 import { formatDate, formatTime } from "@/lib/utils/date";
+import {
+  A4,
+  CINZA,
+  GRAFITE,
+  LARANJA,
+  LARGURA_UTIL,
+  LINHA,
+  MARGEM,
+  VERDE,
+  sanitize,
+  wrap,
+} from "./estilo";
 
 /**
  * Página "Dados da empresa" — a segunda folha do contrato. Reproduz o documento
@@ -12,16 +24,6 @@ import { formatDate, formatTime } from "@/lib/utils/date";
  * É desenhada com pdf-lib em vez de converter o .docx: converter exigiria
  * LibreOffice no servidor, que não roda no free tier da Vercel. Ver ADR-0019.
  */
-
-const VERDE = rgb(0.13, 0.61, 0.35);
-const LARANJA = rgb(0.95, 0.55, 0.13);
-const GRAFITE = rgb(0.15, 0.15, 0.17);
-const CINZA = rgb(0.42, 0.42, 0.46);
-const LINHA = rgb(0.85, 0.85, 0.87);
-
-const A4 = { width: 595.28, height: 841.89 };
-const MARGEM = 48;
-const LARGURA_UTIL = A4.width - MARGEM * 2;
 
 /** Dados da empresa. Ficam aqui por serem o conteúdo do documento, não config. */
 export const CONTA = {
@@ -50,32 +52,6 @@ export type DadosEmpresaData = {
   horaInicio: string | null;
   horaFim: string | null;
 };
-
-function sanitize(text: string): string {
-  return text
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, "-")
-    .replace(/…/g, "...")
-    .replace(/[^\x00-\xFF]/g, "");
-}
-
-function wrap(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
-  const palavras = sanitize(text).split(/\s+/).filter(Boolean);
-  if (palavras.length === 0) return [""];
-  const linhas: string[] = [];
-  let atual = "";
-  for (const palavra of palavras) {
-    const tentativa = atual ? `${atual} ${palavra}` : palavra;
-    if (font.widthOfTextAtSize(tentativa, size) <= maxWidth) atual = tentativa;
-    else {
-      if (atual) linhas.push(atual);
-      atual = palavra;
-    }
-  }
-  if (atual) linhas.push(atual);
-  return linhas;
-}
 
 /**
  * Acrescenta a página ao documento recebido, para o contrato sair num PDF só.

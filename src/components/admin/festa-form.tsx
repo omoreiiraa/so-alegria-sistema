@@ -32,6 +32,7 @@ export type FestaInitial = {
   is_viagem: boolean;
   observacoes: string;
   valor_festa: string;
+  observacoes_orcamento: string;
   telefone_contato: string;
   tema_festa: string;
   qtd_recreadores: string;
@@ -59,6 +60,7 @@ const EMPTY: FestaInitial = {
   is_viagem: false,
   observacoes: "",
   valor_festa: "",
+  observacoes_orcamento: "",
   telefone_contato: "",
   tema_festa: "",
   qtd_recreadores: "",
@@ -145,6 +147,7 @@ export function FestaForm({
       is_viagem: form.is_viagem,
       observacoes: form.observacoes,
       valor_festa: parseBRLInput(form.valor_festa),
+      observacoes_orcamento: form.observacoes_orcamento,
       telefone_contato: form.telefone_contato,
       tema_festa: form.tema_festa,
       qtd_recreadores: form.qtd_recreadores ? Number(form.qtd_recreadores) : null,
@@ -319,6 +322,19 @@ export function FestaForm({
               />
             </div>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="obs_orcamento">Observações do orçamento</Label>
+            <Textarea
+              id="obs_orcamento"
+              value={form.observacoes_orcamento}
+              onChange={(e) => set("observacoes_orcamento", e.target.value)}
+              rows={4}
+              placeholder="O que o cliente precisa ler: o que está incluso, combinados de valor, hora extra…"
+            />
+            <p className="text-xs text-muted-foreground">
+              Sai no PDF do orçamento e no contrato, para o cliente ler.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
@@ -388,8 +404,11 @@ export function FestaForm({
 
       <Card>
         <CardContent className="space-y-2 p-5">
-          <Label htmlFor="obs">Observações</Label>
+          <Label htmlFor="obs">Observações do evento</Label>
           <Textarea id="obs" value={form.observacoes} onChange={(e) => set("observacoes", e.target.value)} rows={3} placeholder="Detalhes, ponto de referência, combinados…" />
+          <p className="text-xs text-muted-foreground">
+            Sai na folha do dia, para a equipe ler. Não vai para o cliente.
+          </p>
         </CardContent>
       </Card>
       </div>

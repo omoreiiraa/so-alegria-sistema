@@ -32,6 +32,7 @@ function toRow(input: import("@/lib/validations/festa").FestaInput) {
     is_viagem: input.is_viagem ?? false,
     observacoes: input.observacoes || null,
     valor_festa: input.valor_festa ?? null,
+    observacoes_orcamento: input.observacoes_orcamento || null,
     telefone_contato: input.telefone_contato
       ? toE164(input.telefone_contato) ?? input.telefone_contato
       : null,

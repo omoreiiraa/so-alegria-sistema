@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionProfile } from "@/lib/auth";
+import { eGestao } from "@/types/domain";
 import { gerarOrcamentoPDF } from "@/lib/pdf/orcamento";
 import { carregarDadosDaFesta } from "@/lib/pdf/festa-orcamento";
 
@@ -8,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getSessionProfile();
-  if (!session || session.profile.role !== "admin") {
+  if (!session || !eGestao(session.profile.role)) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
 

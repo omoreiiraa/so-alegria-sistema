@@ -298,3 +298,40 @@ a RLS deixaria de ser a fronteira, contra a ADR-0002.
 - A conta única `soalegria@admin.com` continua de pé como `admin` até o escritório confirmar
   que cada uma entra com a sua. Ela é o oposto do que esta ADR decidiu — desativá-la é o
   último passo da migração, não um detalhe.
+
+---
+
+### ADR-0023 — Duas observações por festa, e condições fixas nos documentos do cliente
+
+**Data:** 2026-09-04 · **Status:** aceita
+
+**Contexto:** a festa tinha um único campo `observacoes`. Ele saía só na folha do dia — o
+papel que a equipe leva para o evento — e nunca no orçamento. O escritório escrevia ali
+combinados que o cliente precisava ler (o que está incluso, valor da hora adicional) e eles
+não chegavam a lugar nenhum. Junto disso, as condições de contratação (forma de pagamento,
+prazo, cancelamento, crédito) eram coladas à mão no WhatsApp a cada orçamento.
+
+**Decisão:**
+1. Separar em dois campos com públicos diferentes: `observacoes` continua sendo a **observação
+   do evento**, escrita para a equipe, e sai na folha do dia; `observacoes_orcamento` é a
+   **observação do orçamento**, escrita para o cliente, e sai no orçamento e no contrato
+   (migration 0030).
+2. As condições fixas viram texto versionado em `src/lib/pdf/condicoes.ts`, não um bloco
+   digitado por festa. Mudou a regra, muda num arquivo e vale para os dois documentos.
+
+**Alternativas:** (a) um campo só, marcado com uma flag "mostrar ao cliente": um texto não se
+divide em dois públicos com um checkbox — a mesma frase que serve à equipe ("cliente é
+chata, chegar 30min antes") não pode ir ao cliente; (b) guardar as condições numa tabela
+editável pelo admin: são texto jurídico que muda de ano em ano, não dado de operação — cabe
+em migration de código, não em CRUD.
+
+**Consequência:**
+- O contrato ganha a folha `pagina-condicoes.ts`, mas **só quando começa pelo arquivo que o
+  cliente devolveu**. Quando começa pelo orçamento gerado aqui, as condições já estão nele e a
+  folha repetiria o texto (ver `CondicoesDoContrato.incluirFolha`).
+- Cores, medidas e os helpers `sanitize`/`wrap` estavam copiados em cada gerador de PDF;
+  foram para `src/lib/pdf/estilo.ts`, com `wrapMultilinha` novo — a observação digitada pela
+  gerente tem quebras de linha que não podem virar parágrafo corrido.
+- As rotas `/api/festas/[id]/orcamento` e `/contrato` ainda exigiam o papel legado `admin`,
+  o que deixava a dona e a gerente sem baixar documento nenhum desde a ADR-0022. Passaram a
+  usar `eGestao()`.

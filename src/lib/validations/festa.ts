@@ -13,9 +13,12 @@ export const festaSchema = z.object({
   aniversariante_idade: z.number().int().min(0).max(120).nullable().optional(),
   qtd_criancas: z.number().int().min(0).max(2000).nullable().optional(),
   is_viagem: z.boolean().optional().default(false),
+  // Observação do evento: sai na folha do dia, lida pela equipe.
   observacoes: z.string().trim().optional().default(""),
   // Orçamento
   valor_festa: z.number().min(0).max(1000000).nullable().optional(),
+  // Observação do orçamento: sai no orçamento e no contrato, lida pelo cliente.
+  observacoes_orcamento: z.string().trim().optional().default(""),
   telefone_contato: z.string().trim().optional().default(""),
   tema_festa: z.string().trim().optional().default(""),
   qtd_recreadores: z.number().int().min(0).max(200).nullable().optional(),

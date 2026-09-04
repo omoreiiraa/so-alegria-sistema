@@ -63,6 +63,7 @@ type Festa = {
   valor_festa: number | null;
   orcamento_assinado_path: string | null;
   observacoes: string | null;
+  observacoes_orcamento: string | null;
   fechada_por: string | null;
   logradouro: string | null;
   numero: string | null;
@@ -143,7 +144,8 @@ export default async function FestaDetailPage({
     .select(
       `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome, aniversariante_nome,
        aniversariante_idade, qtd_criancas, qtd_recreadores, tema_festa, telefone_contato,
-       valor_festa, orcamento_assinado_path, observacoes, fechada_por, logradouro,
+       valor_festa, orcamento_assinado_path, observacoes, observacoes_orcamento,
+       fechada_por, logradouro,
        numero, bairro, cidade, uf,
        party_types ( nome ), partners ( nome, cidade, uf ),
        party_vehicles ( vehicles ( id, apelido, tipo, placa ) ),
@@ -331,8 +333,15 @@ export default async function FestaDetailPage({
                 </Info>
               ) : null}
               {festa.observacoes && (
-                <p className="rounded-md bg-muted px-3 py-2 text-muted-foreground">
+                <p className="whitespace-pre-line rounded-md bg-muted px-3 py-2 text-muted-foreground">
+                  <span className="font-medium text-foreground">Evento · </span>
                   {festa.observacoes}
+                </p>
+              )}
+              {festa.observacoes_orcamento && (
+                <p className="whitespace-pre-line rounded-md bg-muted px-3 py-2 text-muted-foreground">
+                  <span className="font-medium text-foreground">Orçamento · </span>
+                  {festa.observacoes_orcamento}
                 </p>
               )}
             </CardContent>

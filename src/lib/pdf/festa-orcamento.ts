@@ -25,6 +25,7 @@ type PartyRow = {
   tema_festa: string | null;
   telefone_contato: string | null;
   valor_festa: number | null;
+  observacoes_orcamento: string | null;
   logradouro: string | null;
   numero: string | null;
   complemento: string | null;
@@ -100,8 +101,8 @@ export async function carregarDadosDaFesta(
       .select(
         `id, data, hora_inicio, hora_fim, contratante_nome, aniversariante_nome,
          aniversariante_idade, qtd_criancas, qtd_recreadores, tema_festa,
-         telefone_contato, valor_festa, logradouro, numero, complemento, bairro,
-         cidade, uf, orcamento_assinado_path,
+         telefone_contato, valor_festa, observacoes_orcamento, logradouro, numero,
+         complemento, bairro, cidade, uf, orcamento_assinado_path,
          partners ( nome, logradouro, numero, bairro, cidade, uf )`,
       )
       .eq("id", id)
@@ -142,6 +143,7 @@ export async function carregarDadosDaFesta(
       temaFesta: festa.tema_festa,
       qtdRecreadores: festa.qtd_recreadores,
       valorFesta: festa.valor_festa,
+      observacoes: festa.observacoes_orcamento,
       materiais,
     },
     dadosEmpresa: {
