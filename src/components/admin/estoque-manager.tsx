@@ -42,6 +42,12 @@ export type ItemEstoque = {
   fotoUrl: string | null;
 };
 
+/**
+ * Valor reservado da opção "nova categoria". Começa com "\u0000" para não
+ * colidir com nada que alguém possa digitar como nome de categoria.
+ */
+const NOVA_CATEGORIA = "\u0000nova";
+
 export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -50,6 +56,8 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
   const [editId, setEditId] = useState<string | null>(null);
   const [nome, setNome] = useState("");
   const [categoria, setCategoria] = useState("");
+  /** Verdadeiro enquanto a pessoa digita uma categoria que ainda não existe. */
+  const [criandoCategoria, setCriandoCategoria] = useState(false);
   const [quantidade, setQuantidade] = useState("");
   const [fotoPath, setFotoPath] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -97,19 +105,33 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
     [porBusca, filtro],
   );
 
-  /** Mantém a categoria atual do item na lista, mesmo fora da taxonomia. */
-  const opcoesCategoria = useMemo(
-    () =>
-      categoria && !eCategoriaEstoque(categoria)
-        ? [...CATEGORIAS_ESTOQUE, categoria]
-        : [...CATEGORIAS_ESTOQUE],
-    [categoria],
-  );
+  /**
+   * O que o cadastro oferece: a lista semente mais toda categoria já gravada
+   * em algum item — é assim que a categoria criada por uma pessoa aparece para
+   * as outras, sem ninguém redigitar. A do item em edição entra de todo jeito.
+   */
+  const opcoesCategoria = useMemo(() => {
+    const lista = categoriasTodas.filter((c) => c !== "");
+    return categoria && !lista.includes(categoria) ? [...lista, categoria] : lista;
+  }, [categoriasTodas, categoria]);
+
+  /**
+   * Categoria nova digitada: se já existe uma com a mesma grafia a menos de
+   * acento e caixa, vale a que está no banco — senão o estoque acumularia
+   * "Oficina" e "OFICINA" como duas coisas.
+   */
+  function normalizarCategoria(valor: string): string {
+    const limpo = valor.trim();
+    if (!limpo) return "";
+    const alvo = normalizarTexto(limpo);
+    return opcoesCategoria.find((c) => normalizarTexto(c) === alvo) ?? limpo;
+  }
 
   function novo() {
     setEditId(null);
     setNome("");
     setCategoria("");
+    setCriandoCategoria(false);
     setQuantidade("");
     setFotoPath(null);
     setPreview(null);
@@ -120,6 +142,7 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
     setEditId(i.id);
     setNome(i.nome);
     setCategoria(i.categoria ?? "");
+    setCriandoCategoria(false);
     setQuantidade(String(i.quantidade_total));
     setFotoPath(i.fotoPath);
     setPreview(i.fotoUrl);
@@ -154,7 +177,7 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
     startTransition(async () => {
       const payload = {
         nome,
-        categoria,
+        categoria: normalizarCategoria(categoria),
         quantidade_total: quantidade ? Number(quantidade) : 0,
         foto_url: fotoPath ?? "",
       };
@@ -325,19 +348,63 @@ export function EstoqueManager({ itens }: { itens: ItemEstoque[] }) {
             <div className="grid grid-cols-[1fr_110px] gap-3">
               <div className="space-y-2">
                 <Label htmlFor="categoria">Categoria</Label>
-                <Select value={categoria} onValueChange={(v) => setCategoria(String(v ?? ""))}>
-                  <SelectTrigger id="categoria" className="w-full">
-                    <SelectValue placeholder="Sem categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Sem categoria</SelectItem>
-                    {opcoesCategoria.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
+                {criandoCategoria ? (
+                  <Input
+                    id="categoria"
+                    autoFocus
+                    value={categoria}
+                    onChange={(e) => setCategoria(e.target.value)}
+                    onKeyDown={(e) => {
+                      // Enter aqui fecharia o diálogo; a categoria vale ao salvar.
+                      if (e.key === "Enter") e.preventDefault();
+                    }}
+                    placeholder="Nome da nova categoria"
+                  />
+                ) : (
+                  <Select
+                    value={categoria}
+                    onValueChange={(v) => {
+                      const escolha = String(v ?? "");
+                      // Sentinela: abre o campo de texto em vez de virar categoria.
+                      if (escolha === NOVA_CATEGORIA) {
+                        setCategoria("");
+                        setCriandoCategoria(true);
+                        return;
+                      }
+                      setCategoria(escolha);
+                    }}
+                  >
+                    <SelectTrigger id="categoria" className="w-full">
+                      <SelectValue placeholder="Sem categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Sem categoria</SelectItem>
+                      {opcoesCategoria.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value={NOVA_CATEGORIA} className="text-verde-escuro">
+                        + Nova categoria…
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    </SelectContent>
+                  </Select>
+                )}
+                {criandoCategoria && (
+                  <p className="text-xs text-muted-foreground">
+                    Ao salvar, ela entra na lista para todo mundo.{" "}
+                    <button
+                      type="button"
+                      className="text-verde-escuro underline underline-offset-2"
+                      onClick={() => {
+                        setCategoria("");
+                        setCriandoCategoria(false);
+                      }}
+                    >
+                      Escolher uma existente
+                    </button>
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="qtd">Quantidade total</Label>

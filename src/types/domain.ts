@@ -195,8 +195,10 @@ export const VEHICLE_STATUS_LABEL: Record<VehicleStatus, string> = {
 };
 
 /**
- * Categorias do estoque. Lista fechada, definida pelo escritório: alimenta o
- * filtro da tela e a seleção no cadastro do item, para o texto não variar.
+ * Categorias que o estoque já nasce conhecendo. **Não é lista fechada**: o
+ * cadastro do item deixa criar categoria nova, e a fonte da verdade passa a ser
+ * o que está gravado em `stock_items.categoria` — a semente daqui só garante
+ * que as categorias do escritório apareçam mesmo antes de existir item nelas.
  */
 export const CATEGORIAS_ESTOQUE = [
   "OFICINA",
@@ -213,7 +215,7 @@ export const CATEGORIAS_ESTOQUE = [
 
 export type CategoriaEstoque = (typeof CATEGORIAS_ESTOQUE)[number];
 
-/** Itens antigos podem ter categoria fora da lista; elas continuam visíveis. */
+/** Diz se a categoria veio da semente; as criadas no uso ficam de fora. */
 export const eCategoriaEstoque = (c: string): c is CategoriaEstoque =>
   (CATEGORIAS_ESTOQUE as readonly string[]).includes(c);
 
