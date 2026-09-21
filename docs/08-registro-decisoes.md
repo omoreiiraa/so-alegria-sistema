@@ -335,3 +335,37 @@ em migration de código, não em CRUD.
 - As rotas `/api/festas/[id]/orcamento` e `/contrato` ainda exigiam o papel legado `admin`,
   o que deixava a dona e a gerente sem baixar documento nenhum desde a ADR-0022. Passaram a
   usar `eGestao()`.
+
+---
+
+### ADR-0024 — RG sem dígito verificador, CNPJ alfanumérico
+
+**Data:** 2026-09-21 · **Status:** aceita
+
+**Contexto:** uma colaboradora não conseguiu terminar o cadastro pelo link, em produção. O
+validador de RG exigia exatamente 9 caracteres (8 base + 1 DV do algoritmo mód. 11 do RG-SP)
+e o RG dela tem 10 dígitos. Na mesma revisão veio a segunda pendência: a Receita Federal
+adotou o **CNPJ alfanumérico** (IN RFB nº 2.229/2024) e tanto o Zod quanto a constraint
+`profiles_cnpj_formato` só aceitavam `^[0-9]{14}$`.
+
+**Decisão:**
+1. **RG: validar formato, não dígito verificador.** Aceita de 5 a 14 caracteres, dígitos com
+   um X opcional só na última posição, recusando a sequência toda igual. `formatRG` continua
+   com a máscara `00.000.000-0` e acomoda o RG mais longo como `00.000.000-00`.
+2. **CNPJ: alfanumérico.** 12 primeiras posições em `[0-9A-Z]`, 2 dígitos verificadores
+   numéricos. No mód. 11 cada caractere vale `ASCII − 48` — para CNPJ só de números a conta
+   dá idêntica à antiga, então nada do que já está gravado deixa de valer. A constraint
+   virou `^[0-9A-Z]{12}[0-9]{2}$` (migration 0031) e as Server Actions gravam com `onlyCnpj`,
+   não mais `onlyDigits`, que apagaria as letras.
+
+**Alternativas:** (a) manter o DV do RG-SP e só aumentar o limite de caracteres: o DV de SP
+não vale para RG de outro estado — a conta bateria por acaso em 1 de cada 11 casos e barraria
+os outros; (b) validar o RG por UV/estado: não existe tabela pública confiável de algoritmo
+por estado, e o RG não carrega a UF emissora nos dígitos.
+
+**Consequência:**
+- O RG deixa de ter conferência automática. A conferência de verdade passa a ser o escritório
+  olhando a foto do documento — que é o que já acontecia na prática, já que o DV de SP nunca
+  provou que o número existe.
+- Os campos de RG e CNPJ dos formulários passaram a `inputMode="text"` com
+  `autoCapitalize="characters"`: com `numeric` o teclado do celular não oferece letras.

@@ -10,7 +10,7 @@ import { isValidRG } from "@/lib/utils/rg";
  */
 export const cadastroColaboradorSchema = z.object({
   nome_completo: z.string().min(3, "Informe seu nome completo"),
-  rg: z.string().refine(isValidRG, "RG inválido (verifique o dígito)"),
+  rg: z.string().refine(isValidRG, "RG inválido"),
   cpf: z.string().refine(isValidCPF, "CPF inválido"),
   // Opcional: nem todo tio é MEI. Se preencher, tem de ser um CNPJ válido.
   cnpj: z
@@ -51,7 +51,7 @@ const vazioOu = (check: (v: string) => boolean, msg: string) =>
 export const editarColaboradorSchema = z.object({
   nome_completo: z.string().trim().min(3, "Informe o nome completo"),
   nome_tio: z.string().trim().optional().default(""),
-  rg: vazioOu(isValidRG, "RG inválido (verifique o dígito)"),
+  rg: vazioOu(isValidRG, "RG inválido"),
   cpf: vazioOu(isValidCPF, "CPF inválido"),
   cnpj: vazioOu(isValidCNPJ, "CNPJ inválido"),
   email: vazioOu((v) => z.string().email().safeParse(v).success, "E-mail inválido"),

@@ -22,7 +22,7 @@
 - [ ] Repositório GitHub privado + deploy Vercel
 
 ## Fase 1 — Colaborador core
-- [x] Cadastro público (Nome, RG-SP, CPF, e-mail, celular E.164, endereço via CEP, PIX, senha) + Zod
+- [x] Cadastro público (Nome, RG, CPF, e-mail, celular E.164, endereço via CEP, PIX, senha) + Zod
 - [ ] Verificação de e-mail por OTP/Resend (hoje: confirmação por link; SMTP pendente)
 - [x] Tela "aguardando aprovação" (status pendente)
 - [x] Perfil: editar celular, endereço, PIX, senha (não editáveis: cargo, nome_tio, RG, CPF)

@@ -120,6 +120,7 @@ export function CadastroForm({
               label="RG"
               value={form.rg}
               inputMode="text"
+              autoCapitalize="characters"
               onChange={(v) => set("rg")(formatRG(v))}
               placeholder="00.000.000-0"
             />
@@ -134,7 +135,8 @@ export function CadastroForm({
           <Campo
             label="CNPJ"
             value={form.cnpj}
-            inputMode="numeric"
+            inputMode="text"
+            autoCapitalize="characters"
             onChange={(v) => set("cnpj")(formatCNPJ(v))}
             placeholder="00.000.000/0000-00"
           />

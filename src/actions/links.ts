@@ -8,6 +8,7 @@ import { novoToken, hashToken, urlDoLink, expiraEmDoConvite } from "@/lib/links"
 import { toE164 } from "@/lib/utils/phone";
 import { onlyDigitsCep } from "@/lib/utils/cep";
 import { onlyDigits } from "@/lib/utils/cpf";
+import { onlyCnpj } from "@/lib/utils/cnpj";
 import { onlyRg } from "@/lib/utils/rg";
 import {
   cadastroColaboradorSchema,
@@ -163,7 +164,7 @@ export async function submeterCadastro(token: string, input: unknown) {
       nome_completo: d.nome_completo.trim(),
       rg: onlyRg(d.rg),
       cpf: onlyDigits(d.cpf),
-      cnpj: d.cnpj ? onlyDigits(d.cnpj) : "",
+      cnpj: d.cnpj ? onlyCnpj(d.cnpj) : "",
       email: d.email.trim().toLowerCase(),
       celular,
       cep: onlyDigitsCep(d.cep),

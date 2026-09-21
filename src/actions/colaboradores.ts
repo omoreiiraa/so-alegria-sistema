@@ -7,6 +7,7 @@ import { editarColaboradorSchema } from "@/lib/validations/cadastro";
 import { toE164 } from "@/lib/utils/phone";
 import { onlyDigitsCep } from "@/lib/utils/cep";
 import { onlyDigits } from "@/lib/utils/cpf";
+import { onlyCnpj } from "@/lib/utils/cnpj";
 import { onlyRg } from "@/lib/utils/rg";
 import type { CargoType } from "@/types/domain";
 
@@ -115,7 +116,7 @@ export async function atualizarColaborador(profileId: string, input: unknown) {
       nome_tio: ouNulo(d.nome_tio),
       rg: d.rg === "" ? null : onlyRg(d.rg),
       cpf: d.cpf === "" ? null : onlyDigits(d.cpf),
-      cnpj: d.cnpj === "" ? null : onlyDigits(d.cnpj),
+      cnpj: d.cnpj === "" ? null : onlyCnpj(d.cnpj),
       email: d.email === "" ? null : d.email.toLowerCase(),
       celular,
       cep: d.cep === "" ? null : onlyDigitsCep(d.cep),
