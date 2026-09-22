@@ -20,7 +20,6 @@ import { formatDate } from "@/lib/utils/date";
 import { formatBRL } from "@/lib/utils/money";
 import {
   CARGO_LABEL,
-  CARGO_BASE,
   ASSIGNMENT_STATUS_LABEL,
   PARTY_STATUS_LABEL,
 } from "@/types/domain";
@@ -137,7 +136,7 @@ export default async function ColaboradorDetailPage({
           )}
           {p.aprovado ? (
             <Badge variant="secondary">
-              {CARGO_LABEL[p.cargo]} · base {formatBRL(CARGO_BASE[p.cargo] ?? 0)}
+              {CARGO_LABEL[p.cargo]}
             </Badge>
           ) : (
             <Badge className="bg-vermelho/10 text-vermelho">Não aprovado</Badge>

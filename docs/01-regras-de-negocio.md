@@ -6,17 +6,23 @@
 
 ---
 
-## 1. Cargos e cachê base
+## 1. Funções e cachê base
 
-| Cargo (`cargo_type`) | Cachê base (até 4h) | Observação |
+| Função (`cargo_type`) | Cachê base (até 4h) | Observação |
 |---|---|---|
-| `pendente` | — | Novo cadastro, sem cargo. Não pode ser escalado com cachê. |
+| `pendente` | — | Novo cadastro, sem função. Não pode ser escalado. |
 | `trainee` | R$ 60,00 | |
 | `junior` | R$ 80,00 | |
 | `experiente` | R$ 100,00 | |
 | `coordenador` | R$ 200,00 | Comanda a festa. |
 
-Novo cadastro entra como `pendente` até o admin aprovar e atribuir cargo.
+Novo cadastro entra como `pendente` até o admin aprovar.
+
+**A função que vale dinheiro é a da festa, não a do cadastro (ADR-0026).** O cargo do
+perfil (`profiles.cargo`) é só o nível geral da pessoa, usado como etiqueta e como
+sugestão inicial na hora de escalar — ele **não** define cachê nenhum. Quem define é
+`party_assignments.cargo_snapshot`, escolhido pelo admin a cada escalação: a mesma
+pessoa vai como `coordenador` numa festa e `experiente` na outra.
 
 ---
 
@@ -25,7 +31,7 @@ Novo cadastro entra como `pendente` até o admin aprovar e atribuir cargo.
 Implementado em `calc_cache(cargo, duracao_horas, is_viagem, is_driver) → numeric`.
 A **ordem** importa. Aplicar exatamente assim:
 
-1. **Base** — valor do cargo (tabela acima), referente a **até 4h** de festa.
+1. **Base** — valor da função escolhida na escalação (tabela acima), referente a **até 4h** de festa.
 2. **Hora extra** — se `duracao_horas ≥ 5h59min` (ou seja, ≥ 5,9833… h), soma **+R$ 20** (equivale a +2h). Aplicado **uma única vez**.
    - Regra de corte: festa de **5h58 NÃO** recebe; **5h59 recebe**.
 3. **Viagem** — se `is_viagem`, o subtotal (base + hora extra) é **duplicado** (× 2).
@@ -67,13 +73,17 @@ cache_final = coalesce(cache_custom, cache_calc)
 
 ## 3. Snapshot (congelamento) do cachê
 
-Ao **confirmar** um assignment (`confirm_assignment`):
-- Congela-se `cargo_snapshot` = cargo atual do colaborador.
-- Congela-se `cache_calculado` = resultado de `calc_cache(...)` naquele momento.
+Ao **escalar** o colaborador:
+- Grava-se `cargo_snapshot` = função escolhida pelo admin **para esta festa**.
+- O trigger `trg_assignment_cache` grava `cache_calculado` = `calc_cache(...)` na hora,
+  para o admin ver o valor antes de mandar o convite.
 - `cache_final` = `coalesce(cache_custom, cache_calculado)` (coluna gerada).
 
-**Consequência:** mudar o cargo do colaborador depois **não** altera o cachê de festas já confirmadas.
-(Critério de aceite 6.)
+Ao **aceitar** o convite, `cargo_snapshot` é preservado; só cai no cargo do perfil se a
+escalação não tiver definido função (linhas anteriores à migration 0033).
+
+**Consequência:** mudar o cargo do colaborador depois **não** altera o cachê de festa
+nenhuma — nem das já confirmadas, nem das futuras. (Critério de aceite 6.)
 
 ---
 
@@ -166,7 +176,7 @@ v1 pode iniciar o kanban com Fechada/Escalada/Confirmada/Realizada; colunas conf
 
 1. Colaborador A nunca lê dados de B (RLS).
 2. Cliente nunca altera `role`, `cargo`, `cache_*`, `payments`.
-3. Cachê de festa confirmada não muda quando o cargo muda depois.
+3. Cachê de festa confirmada não muda quando o cargo do cadastro muda depois.
 4. `cache_custom` sempre vence o cálculo.
 5. Item levado reduz "disponível"; devolução restaura; perda ajusta o total.
 6. Um colaborador tem no máximo **um** assignment por festa (`unique (party_id, user_id)`).

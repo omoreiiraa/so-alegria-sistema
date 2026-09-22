@@ -42,6 +42,10 @@ export const escalaSchema = z.object({
   party_id: z.string().uuid(),
   profile_id: z.string().uuid(),
   presence_mode: z.enum(["na_empresa", "direto_no_local"]),
+  // Função NESTA festa — é ela que define o cachê, não o cargo do cadastro.
+  cargo: z.enum(["trainee", "junior", "experiente", "coordenador"], {
+    message: "Escolha a função nesta festa",
+  }),
   horario_apresentacao: z.string().regex(HORA, "Horário inválido").nullable().optional(),
   is_driver: z.boolean().optional().default(false),
   vehicle_id: z.preprocess(

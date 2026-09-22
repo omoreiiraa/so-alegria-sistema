@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/common/empty-state";
 import { FestaStatusControl } from "@/components/admin/festa-status-control";
-import { EscalarPanel } from "@/components/admin/escalar-panel";
+import { EscalarPanel, type SugestoesCache } from "@/components/admin/escalar-panel";
 import { RemoverEscalado } from "@/components/admin/remover-escalado";
 import { ConviteLink } from "@/components/admin/convite-link";
 import { MateriaisFesta, type Material } from "@/components/admin/materiais-festa";
@@ -86,6 +86,8 @@ type Assignment = {
   presence_mode: PresenceMode | null;
   horario_apresentacao: string | null;
   is_driver: boolean;
+  /** Função nesta festa — é a que vale, não o cargo do cadastro (ADR-0026). */
+  cargo_snapshot: CargoType | null;
   cache_final: number | null;
   motivo_recusa: string | null;
   profile_id: string;
@@ -163,11 +165,12 @@ export default async function FestaDetailPage({
     { data: confl },
     { data: mData },
     { data: iData },
+    { data: preview },
   ] = await Promise.all([
     supabase
       .from("party_assignments")
       .select(
-        `id, status, presence_mode, horario_apresentacao, is_driver, cache_final, motivo_recusa, profile_id,
+        `id, status, presence_mode, horario_apresentacao, is_driver, cargo_snapshot, cache_final, motivo_recusa, profile_id,
            profiles ( nome_completo, nome_tio, cargo, celular ),
            colaborador_links ( id, expira_em, usado_em, revogado_em, created_at )`,
       )
@@ -190,7 +193,12 @@ export default async function FestaDetailPage({
       .select("id, qtd_levada, qtd_devolvida, qtd_perdida, stock_items ( nome )")
       .eq("party_id", id),
     supabase.from("stock_items").select("id, nome, categoria").eq("ativo", true).order("nome"),
+    // Quanto rende cada função nesta festa. Quem calcula é o Postgres: a tela
+    // de escalação só exibe o número que seria gravado.
+    supabase.rpc("calc_cache_preview", { p_party_id: id }),
   ]);
+
+  const sugestoes = (preview ?? {}) as SugestoesCache;
 
   const materiais: Material[] = (
     (mData ?? []) as unknown as {
@@ -430,9 +438,9 @@ export default async function FestaDetailPage({
                         {a.profiles?.nome_tio || a.profiles?.nome_completo || "Colaborador"}
                       </p>
                       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                        {a.profiles && (
+                        {(a.cargo_snapshot ?? a.profiles?.cargo) && (
                           <Badge variant="secondary" className="text-xs">
-                            {CARGO_LABEL[a.profiles.cargo]}
+                            {CARGO_LABEL[a.cargo_snapshot ?? a.profiles!.cargo]}
                           </Badge>
                         )}
                         {a.presence_mode && (
@@ -487,7 +495,12 @@ export default async function FestaDetailPage({
                   description="Aprove colaboradores em Colaboradores para poder escalá-los."
                 />
               ) : (
-                <EscalarPanel festaId={id} carros={carros} eligible={eligible} />
+                <EscalarPanel
+                  festaId={id}
+                  carros={carros}
+                  eligible={eligible}
+                  sugestoes={sugestoes}
+                />
               )}
             </CardContent>
           </Card>

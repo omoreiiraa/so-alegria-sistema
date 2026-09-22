@@ -857,6 +857,10 @@ export type Database = {
         }
         Returns: number
       }
+      calc_cache_preview: {
+        Args: { p_party_id: string }
+        Returns: Json
+      }
       close_payment_week: {
         Args: { p_semana_inicio: string }
         Returns: undefined

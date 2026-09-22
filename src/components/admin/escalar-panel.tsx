@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { escalarColaborador } from "@/actions/festas";
 import { lembrarConvite } from "@/lib/convite-cache";
+import { formatBRL } from "@/lib/utils/money";
 import { CARGO_LABEL, PRESENCE_MODE_LABEL } from "@/types/domain";
 import type { CargoType, PresenceMode } from "@/types/domain";
 
@@ -31,13 +32,31 @@ type Eligible = {
 
 type Carro = { id: string; apelido: string; placa: string | null };
 
+/** As quatro funções que valem cachê. "pendente" não é escalável. */
+const FUNCOES = ["trainee", "junior", "experiente", "coordenador"] as const;
+type Funcao = (typeof FUNCOES)[number];
+
+/**
+ * Quanto cada função rende NESTA festa, com e sem motorista. Vem do
+ * calc_cache_preview do Postgres — a mesma conta que grava o cachê, para o
+ * número da tela nunca divergir do que vai ser pago (ADR-0001).
+ */
+export type SugestoesCache = Partial<
+  Record<Funcao, { normal: number | null; motorista: number | null }>
+>;
+
+const ehFuncao = (c: CargoType): c is Funcao =>
+  (FUNCOES as readonly string[]).includes(c);
+
 export function EscalarPanel({
   festaId,
   carros,
   eligible,
+  sugestoes,
 }: {
   festaId: string;
   carros: Carro[];
+  sugestoes: SugestoesCache;
   eligible: Eligible[];
 }) {
   const router = useRouter();
@@ -50,6 +69,7 @@ export function EscalarPanel({
   const [driver, setDriver] = useState(false);
   const [carId, setCarId] = useState("");
   const [cacheCustom, setCacheCustom] = useState("");
+  const [funcao, setFuncao] = useState<Funcao>("experiente");
 
   const filtrados = eligible
     .filter((e) => e.nome.toLowerCase().includes(query.toLowerCase()))
@@ -62,7 +82,13 @@ export function EscalarPanel({
     setDriver(false);
     setCarId("");
     setCacheCustom("");
+    // Abre no nível do cadastro, que é o caso comum — a gerente troca quando
+    // a pessoa vai numa função diferente nesta festa.
+    setFuncao(ehFuncao(e.cargo) ? e.cargo : "experiente");
   }
+
+  /** Valor que o colaborador vê no convite se ninguém digitar um cachê. */
+  const sugerido = sugestoes[funcao]?.[driver ? "motorista" : "normal"] ?? null;
 
   function escalar() {
     if (!sel) return;
@@ -71,6 +97,7 @@ export function EscalarPanel({
         party_id: festaId,
         profile_id: sel.profileId,
         presence_mode: presence,
+        cargo: funcao,
         horario_apresentacao: horario || null,
         is_driver: driver,
         vehicle_id: driver && carId ? carId : null,
@@ -152,6 +179,37 @@ export function EscalarPanel({
 
           <div className="space-y-4">
             <div className="space-y-2">
+              <Label>Função nesta festa</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {FUNCOES.map((f) => {
+                  const valor = sugestoes[f]?.[driver ? "motorista" : "normal"];
+                  return (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => setFuncao(f)}
+                      className={cn(
+                        "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                        funcao === f
+                          ? "border-verde bg-verde/10 text-verde-escuro"
+                          : "border-border hover:bg-muted",
+                      )}
+                    >
+                      <span className="block font-semibold">{CARGO_LABEL[f]}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {valor != null ? formatBRL(valor) : "—"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                O cachê sai daqui, não do cadastro: a mesma pessoa pode ir como
+                coordenadora numa festa e experiente na outra.
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label>Apresentação</Label>
               <div className="flex gap-2">
                 {(["na_empresa", "direto_no_local"] as PresenceMode[]).map((m) => (
@@ -178,10 +236,23 @@ export function EscalarPanel({
                 <Input id="horario" type="time" value={horario} onChange={(e) => setHorario(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="cache">Cachê custom (opcional)</Label>
-                <Input id="cache" type="number" inputMode="numeric" value={cacheCustom} onChange={(e) => setCacheCustom(e.target.value)} placeholder="R$" />
+                <Label htmlFor="cache">Cachê desta festa</Label>
+                <Input
+                  id="cache"
+                  type="number"
+                  inputMode="numeric"
+                  value={cacheCustom}
+                  onChange={(e) => setCacheCustom(e.target.value)}
+                  placeholder={sugerido != null ? formatBRL(sugerido) : "R$"}
+                />
               </div>
             </div>
+
+            <p className="-mt-1 text-xs text-muted-foreground">
+              {sugerido != null
+                ? `Deixando vazio, vai ${formatBRL(sugerido)}${driver ? " (já com o motorista)" : ""}.`
+                : "Escolha a função para ver o valor sugerido."}
+            </p>
 
             <button
               type="button"

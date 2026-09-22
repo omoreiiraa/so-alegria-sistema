@@ -144,6 +144,9 @@ export async function escalarColaborador(input: unknown) {
       party_id: d.party_id,
       profile_id: d.profile_id,
       presence_mode: d.presence_mode,
+      // cargo_snapshot é a função nesta festa; o trigger do banco calcula o
+      // cachê a partir dela (ADR-0026). O app nunca faz essa conta.
+      cargo_snapshot: d.cargo,
       horario_apresentacao: d.horario_apresentacao ?? null,
       is_driver: d.is_driver ?? false,
       vehicle_id: d.vehicle_id ?? null,

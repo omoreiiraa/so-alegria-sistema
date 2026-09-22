@@ -94,7 +94,7 @@ apenas a `service_role`.
 | `horario_apresentacao` | time null | |
 | `is_driver` | boolean default false | +R$20 |
 | `vehicle_id` | → vehicles null | carro que dirige |
-| `cargo_snapshot` | cargo_type null | congelado na confirmação |
+| `cargo_snapshot` | cargo_type null | **função nesta festa**, escolhida na escalação — é ela que define o cachê, não `profiles.cargo` (ADR-0026) |
 | `cache_calculado` | numeric null | congelado na confirmação |
 | `cache_custom` | numeric null | sobrescreve cálculo |
 | `cache_final` | numeric **generated** | `coalesce(cache_custom, cache_calculado)` |
@@ -153,9 +153,10 @@ numera com `pg_advisory_xact_lock` por ano.
 |---|---|---|
 | `cache_base(cargo cargo_type) → numeric` | stable | Tabela de cachê base por cargo |
 | `calc_cache(cargo, duracao_horas, is_viagem, is_driver) → numeric` | immutable | Regra da seção 2 do [01](01-regras-de-negocio.md) |
+| `calc_cache_preview(party_id uuid) → jsonb` | stable, authenticated | Quanto rende cada função naquela festa, com e sem motorista. Só para a tela de escalação exibir o valor antes de gravar |
 | `resolve_link(token_hash text) → jsonb` | **definer**, service_role | Lê o estado do link sem consumi-lo; se for cadastro válido, devolve os dados atuais para pré-preencher |
 | `submit_cadastro_by_token(token_hash text, dados jsonb)` | **definer**, service_role | Grava o cadastro e queima o link |
-| `responder_convite_by_token(token_hash text, aceita bool, motivo text)` | **definer**, service_role | Aceita/recusa; congela `cargo_snapshot` + `cache_calculado`; queima o link |
+| `responder_convite_by_token(token_hash text, aceita bool, motivo text)` | **definer**, service_role | Aceita/recusa; preserva o `cargo_snapshot` da escalação (só cai no cargo do perfil se estiver vazio); queima o link |
 | `close_payment_week(semana_inicio date)` | **definer**, **gestão** | Gera/atualiza `payments` da semana |
 | `set_user_cargo(target uuid, novo cargo_type)` | **definer**, equipe | Altera cargo |
 | `set_user_role(target uuid, novo user_role)` | **definer**, **dona** | Altera o papel de acesso |

@@ -130,22 +130,17 @@ export const ROLE_LABEL: Record<UserRole, string> = {
   colaborador: "Colaborador",
 };
 
-/** Rótulos de exibição (pt-BR). A lógica de cachê vive no banco (docs/01). */
+/**
+ * Rótulos de exibição (pt-BR). No cadastro o cargo é só o nível geral da pessoa:
+ * quem define o cachê é a função escolhida na escalação (ADR-0026). A conta vive
+ * no banco (docs/01) — o JS não guarda tabela de preço.
+ */
 export const CARGO_LABEL: Record<CargoType, string> = {
   pendente: "Pendente",
   trainee: "Trainee",
   junior: "Júnior",
   experiente: "Experiente",
   coordenador: "Coordenador",
-};
-
-/** Cachê base por cargo — apenas para exibição informativa. Fonte da verdade: cache_base() no Postgres. */
-export const CARGO_BASE: Record<CargoType, number | null> = {
-  pendente: null,
-  trainee: 60,
-  junior: 80,
-  experiente: 100,
-  coordenador: 200,
 };
 
 export const PARTY_STATUS_LABEL: Record<PartyStatus, string> = {

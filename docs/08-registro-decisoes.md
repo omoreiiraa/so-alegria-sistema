@@ -394,3 +394,40 @@ um telefonema por cadastro e o colaborador nem consegue enviar o resto dos dados
 **Consequência:** ficha pode nascer sem RG. Quem lê o RG (ficha do admin, documentos) já
 trata `null`, mostrando o campo vazio. O escritório pede o documento depois, pelo link de
 atualização, quando precisar do número para contrato.
+
+---
+
+### ADR-0026 — O cachê é da festa, não do cargo do cadastro
+
+**Data:** 2026-09-22 · **Status:** aceita
+
+**Contexto:** a gerente não queria mais escolher entre Trainee/Júnior/Experiente/Coordenador
+ao aprovar um colaborador. O motivo é operacional: a mesma pessoa vai como coordenadora numa
+festa e como experiente na outra, e as festas têm valores diferentes entre si. Com o cachê
+saindo de `cache_base(profiles.cargo)`, o cargo do cadastro estava decidindo o pagamento de
+toda festa — e o único escape era digitar `cache_custom` em cada escalação.
+
+**Decisão:** o cargo do cadastro vira só o nível geral da pessoa, sem valor nenhum. Quem
+define o cachê passa a ser a função escolhida na escalação, gravada em
+`party_assignments.cargo_snapshot` — coluna que já existia, mas só era preenchida no aceite,
+copiando o cargo do perfil. Três consequências no banco (migration 0033):
+
+1. `trg_assignment_cache` calcula `cache_calculado` já na escalação, para a gerente ver o
+   valor antes de mandar o convite. A conta continua no Postgres (ADR-0001).
+2. `responder_convite_by_token` deixa de carimbar o cargo do perfil por cima: só preenche
+   `cargo_snapshot` se estiver vazio.
+3. `calc_cache_preview(party_id)` devolve quanto rende cada função naquela festa, com e sem
+   motorista, para a tela de escalação exibir sem duplicar a tabela de preços em JavaScript.
+   Na mesma linha, `CARGO_BASE` saiu de `types/domain.ts`.
+
+**Alternativas:** (a) exigir `cache_custom` digitado em toda escalação: dá liberdade total,
+mas joga fora hora extra, viagem e motorista, que continuam sendo regra fixa e passariam a
+depender da gerente lembrar de somar; (b) tirar a escolha de nível do cadastro de vez: ela
+quis manter, é o que organiza a lista de colaboradores e vira a sugestão inicial da escalação.
+
+**Consequência:**
+- Escalações antigas não mudam: `cargo_snapshot` e `cache_calculado` já estavam gravados, e
+  `cache_final` é coluna gerada sobre eles. Nada de festa paga é recalculado.
+- Aprovar colaborador não mostra mais valor em R$ em lugar nenhum.
+- A escalação ganhou um campo obrigatório (a função), e o cachê digitado continua sendo
+  `cache_custom` — que segue vencendo o cálculo.

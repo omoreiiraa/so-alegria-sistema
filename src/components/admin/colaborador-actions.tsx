@@ -15,9 +15,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { CARGO_LABEL, CARGO_BASE } from "@/types/domain";
+import { CARGO_LABEL } from "@/types/domain";
 import type { CargoType } from "@/types/domain";
-import { formatBRL } from "@/lib/utils/money";
 import {
   aprovarColaborador,
   definirCargo,
@@ -103,7 +102,8 @@ export function ColaboradorActions({
             {aprovado ? "Gerenciar colaborador" : "Aprovar colaborador"}
           </DialogTitle>
           <DialogDescription>
-            Defina o cargo e o nome de tio usado nas festas.
+            Defina o nível geral e o nome de tio usado nas festas. O cachê não
+            vem daqui: ele é definido a cada festa, na hora de escalar.
           </DialogDescription>
         </DialogHeader>
 
@@ -124,9 +124,6 @@ export function ColaboradorActions({
                   )}
                 >
                   <span className="block font-semibold">{CARGO_LABEL[c]}</span>
-                  <span className="text-xs text-muted-foreground">
-                    base {formatBRL(CARGO_BASE[c] ?? 0)}
-                  </span>
                 </button>
               ))}
             </div>
