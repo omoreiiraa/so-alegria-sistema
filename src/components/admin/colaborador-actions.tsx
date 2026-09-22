@@ -15,48 +15,38 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { CARGO_LABEL } from "@/types/domain";
-import type { CargoType } from "@/types/domain";
 import {
   aprovarColaborador,
-  definirCargo,
   definirNomeTio,
   definirAtivo,
 } from "@/actions/colaboradores";
 
-const CARGOS: CargoType[] = ["trainee", "junior", "experiente", "coordenador"];
-
+/**
+ * Aprovar não escolhe função nenhuma: a mesma pessoa vai como coordenadora numa
+ * festa e experiente na outra, então isso é decidido na escalação (ADR-0026).
+ * Aqui sobra o que é da pessoa, não da festa: liberar o cadastro, o nome de tio
+ * e ativar/desativar.
+ */
 export function ColaboradorActions({
   profileId,
   aprovado,
   ativo,
-  cargo,
   nomeTio,
 }: {
   profileId: string;
   aprovado: boolean;
   ativo: boolean;
-  cargo: CargoType;
   nomeTio: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
-  const [sel, setSel] = useState<CargoType | null>(
-    cargo === "pendente" ? null : cargo,
-  );
   const [nome, setNome] = useState(nomeTio ?? "");
 
   function salvar() {
-    if (!sel) {
-      toast.error("Escolha um cargo.");
-      return;
-    }
     startTransition(async () => {
       let err: string | undefined;
       if (!aprovado) {
-        err = (await aprovarColaborador(profileId, sel)).error;
-      } else if (sel !== cargo) {
-        err = (await definirCargo(profileId, sel)).error;
+        err = (await aprovarColaborador(profileId)).error;
       }
       if (!err && nome.trim() !== (nomeTio ?? "")) {
         err = (await definirNomeTio(profileId, nome)).error;
@@ -102,42 +92,20 @@ export function ColaboradorActions({
             {aprovado ? "Gerenciar colaborador" : "Aprovar colaborador"}
           </DialogTitle>
           <DialogDescription>
-            Defina o nível geral e o nome de tio usado nas festas. O cachê não
-            vem daqui: ele é definido a cada festa, na hora de escalar.
+            {aprovado
+              ? "O nome de tio é o que aparece para o cliente nas festas."
+              : "Aprovar libera a pessoa para ser escalada. A função e o cachê são escolhidos em cada festa, na hora de escalar."}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Cargo</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {CARGOS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setSel(c)}
-                  className={cn(
-                    "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
-                    sel === c
-                      ? "border-verde bg-verde/10 text-verde-escuro"
-                      : "border-border hover:bg-muted",
-                  )}
-                >
-                  <span className="block font-semibold">{CARGO_LABEL[c]}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="nome_tio">Nome de tio</Label>
-            <Input
-              id="nome_tio"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Ex.: Tio Léo"
-            />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="nome_tio">Nome de tio (opcional)</Label>
+          <Input
+            id="nome_tio"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Ex.: Tio Léo"
+          />
         </div>
 
         <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-between">

@@ -9,7 +9,6 @@ import { onlyDigitsCep } from "@/lib/utils/cep";
 import { onlyDigits } from "@/lib/utils/cpf";
 import { onlyCnpj } from "@/lib/utils/cnpj";
 import { onlyRg } from "@/lib/utils/rg";
-import type { CargoType } from "@/types/domain";
 
 function revalidate() {
   // "layout" cobre a lista e a ficha de cada colaborador.
@@ -17,26 +16,14 @@ function revalidate() {
   revalidatePath("/admin");
 }
 
-/** Aprova o cadastro e define o cargo. */
-export async function aprovarColaborador(profileId: string, cargo: CargoType) {
-  if (cargo === "pendente") return { error: "Escolha um cargo para aprovar." };
+/**
+ * Libera o colaborador para ser escalado. Não define função: isso é escolhido
+ * festa a festa, na escalação (ADR-0026).
+ */
+export async function aprovarColaborador(profileId: string) {
   const supabase = await createClient();
-  const { error } = await supabase.rpc("approve_user", {
-    p_profile: profileId,
-    p_cargo: cargo,
-  });
+  const { error } = await supabase.rpc("approve_user", { p_profile: profileId });
   if (error) return { error: "Não foi possível aprovar." };
-  revalidate();
-  return { ok: true };
-}
-
-export async function definirCargo(profileId: string, cargo: CargoType) {
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("set_user_cargo", {
-    p_profile: profileId,
-    p_cargo: cargo,
-  });
-  if (error) return { error: "Não foi possível alterar o cargo." };
   revalidate();
   return { ok: true };
 }

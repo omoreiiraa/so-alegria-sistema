@@ -177,11 +177,12 @@ export default async function FestaDetailPage({
       .eq("party_id", id),
     supabase
       .from("profiles")
-      .select("id, nome_completo, nome_tio, cargo")
+      // Aprovado e ativo basta: o cargo do cadastro não decide mais nada, e
+      // exigir cargo <> 'pendente' esconderia todo mundo aprovado depois da 0034.
+      .select("id, nome_completo, nome_tio")
       .eq("role", "colaborador")
       .eq("aprovado", true)
-      .eq("ativo", true)
-      .neq("cargo", "pendente"),
+      .eq("ativo", true),
     supabase
       .from("party_assignments")
       .select("profile_id, parties!inner(data)")
@@ -228,13 +229,11 @@ export default async function FestaDetailPage({
     id: string;
     nome_completo: string | null;
     nome_tio: string | null;
-    cargo: CargoType;
   }[])
     .filter((p) => !assignedIds.has(p.id))
     .map((p) => ({
       profileId: p.id,
       nome: p.nome_completo ?? p.nome_tio ?? "Colaborador",
-      cargo: p.cargo,
       conflito: conflitoSet.has(p.id),
     }));
 

@@ -9,8 +9,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NovoColaborador } from "@/components/admin/novo-colaborador";
 import { cn } from "@/lib/utils";
-import { CARGO_LABEL } from "@/types/domain";
-import type { CargoType } from "@/types/domain";
 
 export const metadata: Metadata = { title: "Colaboradores" };
 
@@ -20,7 +18,6 @@ type Colab = {
   nome_completo: string | null;
   nome_tio: string | null;
   email: string | null;
-  cargo: CargoType;
   aprovado: boolean;
   ativo: boolean;
   cidade: string | null;
@@ -57,7 +54,7 @@ function ColabCard({ c }: { c: Colab }) {
               <Badge className="bg-laranja/15 text-laranja-escuro">Cadastro pendente</Badge>
             )}
             {c.aprovado ? (
-              <Badge variant="secondary">{CARGO_LABEL[c.cargo]}</Badge>
+              <Badge variant="secondary">Aprovado</Badge>
             ) : (
               <Badge className="bg-vermelho/10 text-vermelho">Pendente</Badge>
             )}
@@ -75,7 +72,7 @@ export default async function ColaboradoresPage() {
   const { data } = await supabase
     .from("profiles")
     .select(
-      "id, nome_completo, nome_tio, email, cargo, aprovado, ativo, cidade, uf, cpf",
+      "id, nome_completo, nome_tio, email, aprovado, ativo, cidade, uf, cpf",
     )
     .eq("role", "colaborador")
     .order("created_at", { ascending: false });

@@ -16,13 +16,15 @@
 | `experiente` | R$ 100,00 | |
 | `coordenador` | R$ 200,00 | Comanda a festa. |
 
-Novo cadastro entra como `pendente` até o admin aprovar.
+Novo cadastro fica bloqueado até o admin aprovar. **Aprovar não escolhe função** —
+só libera a pessoa para ser escalada (`aprovado` + `ativo`). Quem pode ser escalado é
+quem está aprovado e ativo; `profiles.cargo` não entra nessa conta.
 
-**A função que vale dinheiro é a da festa, não a do cadastro (ADR-0026).** O cargo do
-perfil (`profiles.cargo`) é só o nível geral da pessoa, usado como etiqueta e como
-sugestão inicial na hora de escalar — ele **não** define cachê nenhum. Quem define é
-`party_assignments.cargo_snapshot`, escolhido pelo admin a cada escalação: a mesma
-pessoa vai como `coordenador` numa festa e `experiente` na outra.
+**A função é da festa, não da pessoa (ADR-0026).** Quem define o cachê é
+`party_assignments.cargo_snapshot`, escolhido pelo admin a cada escalação — a mesma
+pessoa vai como `coordenador` numa festa e `experiente` na outra. A escalação não
+sugere função: o admin escolhe uma das quatro, sempre, e só então consegue enviar o
+convite. `profiles.cargo` não é lido por tela nenhuma.
 
 ---
 

@@ -21,12 +21,11 @@ import { escalarColaborador } from "@/actions/festas";
 import { lembrarConvite } from "@/lib/convite-cache";
 import { formatBRL } from "@/lib/utils/money";
 import { CARGO_LABEL, PRESENCE_MODE_LABEL } from "@/types/domain";
-import type { CargoType, PresenceMode } from "@/types/domain";
+import type { PresenceMode } from "@/types/domain";
 
 type Eligible = {
   profileId: string;
   nome: string;
-  cargo: CargoType;
   conflito: boolean;
 };
 
@@ -44,9 +43,6 @@ type Funcao = (typeof FUNCOES)[number];
 export type SugestoesCache = Partial<
   Record<Funcao, { normal: number | null; motorista: number | null }>
 >;
-
-const ehFuncao = (c: CargoType): c is Funcao =>
-  (FUNCOES as readonly string[]).includes(c);
 
 export function EscalarPanel({
   festaId,
@@ -69,7 +65,7 @@ export function EscalarPanel({
   const [driver, setDriver] = useState(false);
   const [carId, setCarId] = useState("");
   const [cacheCustom, setCacheCustom] = useState("");
-  const [funcao, setFuncao] = useState<Funcao>("experiente");
+  const [funcao, setFuncao] = useState<Funcao | null>(null);
 
   const filtrados = eligible
     .filter((e) => e.nome.toLowerCase().includes(query.toLowerCase()))
@@ -82,16 +78,22 @@ export function EscalarPanel({
     setDriver(false);
     setCarId("");
     setCacheCustom("");
-    // Abre no nível do cadastro, que é o caso comum — a gerente troca quando
-    // a pessoa vai numa função diferente nesta festa.
-    setFuncao(ehFuncao(e.cargo) ? e.cargo : "experiente");
+    // Nasce sem função escolhida de propósito: é a decisão de quanto a pessoa
+    // ganha nesta festa, não pode sair por um clique distraído no padrão.
+    setFuncao(null);
   }
 
   /** Valor que o colaborador vê no convite se ninguém digitar um cachê. */
-  const sugerido = sugestoes[funcao]?.[driver ? "motorista" : "normal"] ?? null;
+  const sugerido = funcao
+    ? (sugestoes[funcao]?.[driver ? "motorista" : "normal"] ?? null)
+    : null;
 
   function escalar() {
     if (!sel) return;
+    if (!funcao) {
+      toast.error("Escolha a função nesta festa.");
+      return;
+    }
     startTransition(async () => {
       const res = await escalarColaborador({
         party_id: festaId,
@@ -145,9 +147,6 @@ export function EscalarPanel({
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{e.nome}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                  <Badge variant="secondary" className="text-xs">
-                    {CARGO_LABEL[e.cargo]}
-                  </Badge>
                   {e.conflito && (
                     <Badge className="gap-1 bg-vermelho/10 text-vermelho">
                       <AlertTriangle className="size-3" /> Outra festa no dia
@@ -307,7 +306,7 @@ export function EscalarPanel({
             </Button>
             <Button
               onClick={escalar}
-              disabled={pending}
+              disabled={pending || !funcao}
               className="bg-verde font-semibold text-white hover:bg-verde-escuro"
             >
               {pending ? "Escalando…" : "Enviar convite"}

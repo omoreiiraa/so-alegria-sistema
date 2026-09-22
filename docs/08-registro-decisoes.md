@@ -431,3 +431,13 @@ quis manter, é o que organiza a lista de colaboradores e vira a sugestão inici
 - Aprovar colaborador não mostra mais valor em R$ em lugar nenhum.
 - A escalação ganhou um campo obrigatório (a função), e o cachê digitado continua sendo
   `cache_custom` — que segue vencendo o cálculo.
+
+**Revisão (2026-09-22, migration 0034):** a gerente voltou atrás na parte de manter o nível
+no cadastro — não quer escolher nada ao aprovar. Aprovar passou a ser só liberar a pessoa
+(`approve_user(p_profile)`, sem cargo), e `set_user_cargo` foi removida junto com a tela que
+a chamava. `profiles.cargo` continua na tabela como herança de quem já estava aprovado e
+como fallback das escalações anteriores à 0033, mas nenhuma tela lê nem escreve nela; quem
+pode ser escalado passou a ser "aprovado e ativo", não mais "cargo <> pendente" — sem isso
+ninguém aprovado depois da 0034 apareceria na lista de escalação. Na escalação, a função
+deixou de vir pré-selecionada: é a decisão de quanto a pessoa ganha naquela festa, então o
+botão de enviar convite fica travado até o admin escolher uma das quatro.

@@ -838,10 +838,7 @@ export type Database = {
     }
     Functions: {
       approve_user: {
-        Args: {
-          p_cargo: Database["public"]["Enums"]["cargo_type"]
-          p_profile: string
-        }
+        Args: { p_profile: string }
         Returns: undefined
       }
       cache_base: {
@@ -910,13 +907,6 @@ export type Database = {
       }
       set_user_active: {
         Args: { p_ativo: boolean; p_profile: string }
-        Returns: undefined
-      }
-      set_user_cargo: {
-        Args: {
-          p_cargo: Database["public"]["Enums"]["cargo_type"]
-          p_profile: string
-        }
         Returns: undefined
       }
       set_user_role: {

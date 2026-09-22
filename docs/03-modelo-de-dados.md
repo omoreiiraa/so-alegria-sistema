@@ -32,7 +32,7 @@ create type stock_movement_type as enum ('entrada', 'saida_festa', 'devolucao', 
 | `id` | uuid PK | identidade do colaborador; referenciada por assignments e payments |
 | `user_id` | uuid null → auth.users (on delete set null) | **só o escritório tem**; colaborador não faz login |
 | `role` | user_role default `'colaborador'` | papel de acesso; espelhado em `app_metadata` via trigger. Só a dona altera (RPC + trigger `guard_profile_privileges`) |
-| `cargo` | cargo_type default `'pendente'` | |
+| `cargo` | cargo_type default `'pendente'` | herança de quem foi aprovado antes da 0034; não define cachê nem elegibilidade e nenhuma tela escreve nele (ADR-0026) |
 | `nome_completo` | text | |
 | `nome_tio` | text null | definido pelo admin |
 | `rg`, `cpf` | text | `cpf` unique; validação de DV via constraint/trigger; `rg` opcional (null quando não informado, ADR-0025); sensível (LGPD) |
@@ -158,9 +158,8 @@ numera com `pg_advisory_xact_lock` por ano.
 | `submit_cadastro_by_token(token_hash text, dados jsonb)` | **definer**, service_role | Grava o cadastro e queima o link |
 | `responder_convite_by_token(token_hash text, aceita bool, motivo text)` | **definer**, service_role | Aceita/recusa; preserva o `cargo_snapshot` da escalação (só cai no cargo do perfil se estiver vazio); queima o link |
 | `close_payment_week(semana_inicio date)` | **definer**, **gestão** | Gera/atualiza `payments` da semana |
-| `set_user_cargo(target uuid, novo cargo_type)` | **definer**, equipe | Altera cargo |
 | `set_user_role(target uuid, novo user_role)` | **definer**, **dona** | Altera o papel de acesso |
-| `approve_user(target uuid, cargo cargo_type)` | **definer**, equipe | Aprova cadastro + define cargo |
+| `approve_user(target uuid)` | **definer**, equipe | Aprova o cadastro (`aprovado` + `ativo`). Não define função: isso é da escalação |
 | `set_user_active(target uuid, ativo bool)` | **definer**, equipe | Ativa/desativa sem apagar nada |
 | `delete_colaborador(target uuid)` | **definer**, equipe | Exclui a ficha; **recusa** se houver festa ou pagamento |
 | `is_gestao() → boolean` | stable | Gestão: `dona`, `admin` ou `gerente` — dinheiro e OS |

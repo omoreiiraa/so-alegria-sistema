@@ -19,11 +19,10 @@ import { formatCEP } from "@/lib/utils/cep";
 import { formatDate } from "@/lib/utils/date";
 import { formatBRL } from "@/lib/utils/money";
 import {
-  CARGO_LABEL,
   ASSIGNMENT_STATUS_LABEL,
   PARTY_STATUS_LABEL,
 } from "@/types/domain";
-import type { AssignmentStatus, CargoType, PartyStatus } from "@/types/domain";
+import type { AssignmentStatus, PartyStatus } from "@/types/domain";
 
 export const metadata: Metadata = { title: "Colaborador" };
 
@@ -44,7 +43,6 @@ type Perfil = {
   cidade: string | null;
   uf: string | null;
   chave_pix: string | null;
-  cargo: CargoType;
   aprovado: boolean;
   ativo: boolean;
   created_at: string;
@@ -72,7 +70,7 @@ export default async function ColaboradorDetailPage({
       .from("profiles")
       .select(
         `id, nome_completo, nome_tio, rg, cpf, cnpj, email, celular, cep, logradouro, numero,
-         complemento, bairro, cidade, uf, chave_pix, cargo, aprovado, ativo, created_at,
+         complemento, bairro, cidade, uf, chave_pix, aprovado, ativo, created_at,
          colaborador_links ( id, tipo, usado_em, revogado_em, created_at )`,
       )
       .eq("id", id)
@@ -135,9 +133,7 @@ export default async function ColaboradorDetailPage({
             <Badge className="bg-laranja/15 text-laranja-escuro">Cadastro pendente</Badge>
           )}
           {p.aprovado ? (
-            <Badge variant="secondary">
-              {CARGO_LABEL[p.cargo]}
-            </Badge>
+            <Badge variant="secondary">Aprovado</Badge>
           ) : (
             <Badge className="bg-vermelho/10 text-vermelho">Não aprovado</Badge>
           )}
@@ -165,7 +161,6 @@ export default async function ColaboradorDetailPage({
             profileId={p.id}
             aprovado={p.aprovado}
             ativo={p.ativo}
-            cargo={p.cargo}
             nomeTio={p.nome_tio}
           />
           <ExcluirColaborador profileId={p.id} nome={nome} />

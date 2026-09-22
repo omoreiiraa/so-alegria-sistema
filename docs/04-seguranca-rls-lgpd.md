@@ -85,7 +85,7 @@ papel abaixo de `funcionario`.
 |---|---|
 | `is_dona()` | `set_user_role` |
 | `is_gestao()` | `close_payment_week`, `mark_payment_paid`, `create_service_order` |
-| `is_equipe()` | `approve_user`, `set_user_cargo`, `set_nome_tio`, `set_user_active`, `delete_colaborador`, `delete_stock_item` |
+| `is_equipe()` | `approve_user`, `set_nome_tio`, `set_user_active`, `delete_colaborador`, `delete_stock_item` |
 
 ## Acesso público por token
 
