@@ -117,7 +117,7 @@ export function CadastroForm({
           <Campo label="Nome completo" value={form.nome_completo} onChange={set("nome_completo")} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Campo
-              label="RG"
+              label="RG (opcional)"
               value={form.rg}
               inputMode="text"
               autoCapitalize="characters"

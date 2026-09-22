@@ -369,3 +369,28 @@ por estado, e o RG não carrega a UF emissora nos dígitos.
   provou que o número existe.
 - Os campos de RG e CNPJ dos formulários passaram a `inputMode="text"` com
   `autoCapitalize="characters"`: com `numeric` o teclado do celular não oferece letras.
+
+---
+
+### ADR-0025 — RG opcional no cadastro pelo link
+
+**Data:** 2026-09-22 · **Status:** aceita
+
+**Contexto:** um colaborador travou no formulário público porque só tem CPF em mãos — não
+tem RG, ou não tem o documento consigo na hora de preencher. O RG era obrigatório no
+`cadastroColaboradorSchema`, então o cadastro inteiro ficava bloqueado por esse campo. A
+coluna `profiles.rg` nunca foi `not null`, e a edição pelo admin já aceitava RG vazio: a
+obrigatoriedade só existia no cadastro pelo link.
+
+**Decisão:** o RG passa a ser opcional no cadastro, com a mesma regra que já vale para o
+CNPJ — vazio passa, preenchido tem de ser válido (`vazioOu(isValidRG)`). O rótulo do campo
+virou "RG (opcional)" e a RPC `submit_cadastro_by_token` grava `nullif(..., '')`
+(migration 0032), para a ficha ficar com `null` e não com string vazia.
+
+**Alternativas:** (a) deixar obrigatório e o escritório completar depois pelo painel: exige
+um telefonema por cadastro e o colaborador nem consegue enviar o resto dos dados;
+(b) exigir "RG ou CNPJ": CNPJ só vale para quem é MEI, e a maioria não é.
+
+**Consequência:** ficha pode nascer sem RG. Quem lê o RG (ficha do admin, documentos) já
+trata `null`, mostrando o campo vazio. O escritório pede o documento depois, pelo link de
+atualização, quando precisar do número para contrato.

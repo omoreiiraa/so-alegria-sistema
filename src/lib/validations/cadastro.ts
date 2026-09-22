@@ -4,13 +4,18 @@ import { isValidCNPJ } from "@/lib/utils/cnpj";
 import { isValidPhone } from "@/lib/utils/phone";
 import { isValidRG } from "@/lib/utils/rg";
 
+/** Aceita vazio (campo ainda não preenchido) ou exige que o valor seja válido. */
+const vazioOu = (check: (v: string) => boolean, msg: string) =>
+  z.string().trim().refine((v) => v === "" || check(v), msg);
+
 /**
  * Cadastro que o colaborador preenche pelo link enviado no WhatsApp.
  * É o antigo autocadastro sem senha nem confirmação — ele não tem login.
  */
 export const cadastroColaboradorSchema = z.object({
   nome_completo: z.string().min(3, "Informe seu nome completo"),
-  rg: z.string().refine(isValidRG, "RG inválido"),
+  // Opcional: tem colaborador que só leva o CPF na carteira. Se preencher, tem de valer.
+  rg: vazioOu(isValidRG, "RG inválido").optional().default(""),
   cpf: z.string().refine(isValidCPF, "CPF inválido"),
   // Opcional: nem todo tio é MEI. Se preencher, tem de ser um CNPJ válido.
   cnpj: z
@@ -38,10 +43,6 @@ export const novoColaboradorSchema = z.object({
   celular: z.string().refine((v) => isValidPhone(v), "Celular inválido (com DDD)"),
 });
 export type NovoColaboradorInput = z.infer<typeof novoColaboradorSchema>;
-
-/** Aceita vazio (campo ainda não preenchido) ou exige que o valor seja válido. */
-const vazioOu = (check: (v: string) => boolean, msg: string) =>
-  z.string().trim().refine((v) => v === "" || check(v), msg);
 
 /**
  * Edição manual pelo admin — o colaborador liga pedindo para trocar o telefone,

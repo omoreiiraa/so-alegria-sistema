@@ -35,7 +35,7 @@ create type stock_movement_type as enum ('entrada', 'saida_festa', 'devolucao', 
 | `cargo` | cargo_type default `'pendente'` | |
 | `nome_completo` | text | |
 | `nome_tio` | text null | definido pelo admin |
-| `rg`, `cpf` | text | `cpf` unique; validação de DV via constraint/trigger; sensível (LGPD) |
+| `rg`, `cpf` | text | `cpf` unique; validação de DV via constraint/trigger; `rg` opcional (null quando não informado, ADR-0025); sensível (LGPD) |
 | `email`, `celular` | text | `celular` em E.164 |
 | `cep, logradouro, numero, complemento, bairro, cidade, uf` | text | endereço |
 | `chave_pix` | text | |
