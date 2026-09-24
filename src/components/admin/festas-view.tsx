@@ -47,7 +47,7 @@ import {
   addDaysISO,
 } from "@/lib/utils/date";
 import { VALIDADE_ORCAMENTO_DIAS, type ValidadeOrcamento } from "@/lib/orcamento-validade";
-import { mudarStatusFesta } from "@/actions/festas";
+import { mudarStatusFesta, moverParaVendidos } from "@/actions/festas";
 import { MarcarPerdidoDialog } from "@/components/admin/marcar-perdido";
 import { PARTY_STATUS_LABEL } from "@/types/domain";
 import type { PartyStatus } from "@/types/domain";
@@ -60,6 +60,8 @@ export type FestaCard = {
   horaFim: string;
   isViagem: boolean;
   contratante: string | null;
+  /** Paga que já foi movida para Vendidos: fora do quadro. */
+  arquivada: boolean;
   aniversariante: string | null;
   /** E.164, como está no banco. */
   telefone: string | null;
@@ -170,7 +172,7 @@ export function FestasView({ festas }: { festas: FestaCard[] }) {
   // origem, e no sucesso o router.refresh() traz os dados já atualizados.
   const [cards, moverCard] = useOptimistic(
     festas,
-    (atual: FestaCard[], mov: { id: string; status: PartyStatus }) =>
+    (atual: FestaCard[], mov: { id: string; status: PartyStatus; arquivar?: boolean }) =>
       atual.map((c) => {
         if (c.id !== mov.id) return c;
         // Voltar para Orçamento renova o prazo: a previsão já nasce válida.
@@ -184,7 +186,7 @@ export function FestasView({ festas }: { festas: FestaCard[] }) {
                 diasRestantes: VALIDADE_ORCAMENTO_DIAS,
               }
             : null;
-        return { ...c, status: mov.status, orcamento };
+        return { ...c, status: mov.status, orcamento, arquivada: mov.arquivar ?? false };
       }),
   );
   const [arrastando, setArrastando] = useState<string | null>(null);
@@ -199,7 +201,8 @@ export function FestasView({ festas }: { festas: FestaCard[] }) {
     [cards, busca, filtros],
   );
   const limitePaga = addDaysISO(todayISO(), -DIAS_PAGA_NO_QUADRO);
-  const pagaAntiga = (f: FestaCard) => f.status === "paga" && f.data < limitePaga;
+  const pagaAntiga = (f: FestaCard) =>
+    f.status === "paga" && (f.arquivada || f.data < limitePaga);
   // O calendário é por data, não enche com o tempo: mostra também as pagas
   // antigas. Só as perdidas ficam de fora dele.
   const visiveis = encontrados.filter(
@@ -246,6 +249,18 @@ export function FestasView({ festas }: { festas: FestaCard[] }) {
   }
 
   /** Liga uma área do quadro ao arrastar-e-soltar. */
+  function arquivar(card: FestaCard) {
+    startTransition(async () => {
+      moverCard({ id: card.id, status: "paga", arquivar: true });
+      const res = await moverParaVendidos(card.id);
+      if (res?.error) toast.error(res.error);
+      else {
+        toast.success("Festa movida para Vendidos.");
+        router.refresh();
+      }
+    });
+  }
+
   const alvoDeSoltar = (id: ColunaId) => ({
     onDragOver: (e: React.DragEvent) => {
       if (!arrastando) return;
@@ -388,6 +403,7 @@ export function FestasView({ festas }: { festas: FestaCard[] }) {
                       }}
                       onMarcar={(status) => soltarEm(f.id, status)}
                       onPerder={() => setPerdendo(f)}
+                      onArquivar={() => arquivar(f)}
                     />
                   ))}
                   {itens.length === 0 && (
@@ -498,10 +514,12 @@ function MenuCard({
   f,
   onMarcar,
   onPerder,
+  onArquivar,
 }: {
   f: FestaCard;
   onMarcar: (status: "realizada" | "paga") => void;
   onPerder: () => void;
+  onArquivar: () => void;
 }) {
   const emAndamento = f.status !== "realizada" && f.status !== "paga";
   return (
@@ -523,6 +541,11 @@ function MenuCard({
             <Wallet className="text-amarelo" /> Marcar como paga
           </DropdownMenuItem>
         )}
+        {f.status === "paga" && (
+          <DropdownMenuItem onClick={onArquivar}>
+            <Trophy className="text-verde-escuro" /> Mover para Vendidos
+          </DropdownMenuItem>
+        )}
         {emAndamento && (
           <DropdownMenuItem variant="destructive" onClick={onPerder}>
             <UserX /> Marcar como perdido
@@ -541,6 +564,7 @@ function FestaMiniCard({
   onDragEnd,
   onMarcar,
   onPerder,
+  onArquivar,
 }: {
   f: FestaCard;
   arrastavel?: boolean;
@@ -549,8 +573,9 @@ function FestaMiniCard({
   onDragEnd?: (e: React.DragEvent<HTMLAnchorElement>) => void;
   onMarcar?: (status: "realizada" | "paga") => void;
   onPerder?: () => void;
+  onArquivar?: () => void;
 }) {
-  const comMenu = !!onMarcar && !!onPerder && f.status !== "paga";
+  const comMenu = !!onMarcar && !!onPerder && !!onArquivar;
   return (
     <div className="relative">
       <Link
@@ -599,7 +624,7 @@ function FestaMiniCard({
           )}
         </div>
       </Link>
-      {comMenu && <MenuCard f={f} onMarcar={onMarcar!} onPerder={onPerder!} />}
+      {comMenu && <MenuCard f={f} onMarcar={onMarcar!} onPerder={onPerder!} onArquivar={onArquivar!} />}
     </div>
   );
 }

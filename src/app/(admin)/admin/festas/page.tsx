@@ -23,6 +23,7 @@ type Row = {
   telefone_contato: string | null;
   created_at: string;
   orcamento_emitido_em: string | null;
+  arquivada_em: string | null;
   cidade: string | null;
   uf: string | null;
   party_types: { nome: string } | null;
@@ -38,7 +39,7 @@ export default async function FestasPage() {
     .from("parties")
     .select(
       `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome,
-       aniversariante_nome, telefone_contato, created_at, orcamento_emitido_em, cidade, uf,
+       aniversariante_nome, telefone_contato, created_at, orcamento_emitido_em, arquivada_em, cidade, uf,
        party_types ( nome ), partners ( nome ), party_assignments ( status ),
        party_party_types ( party_types ( nome ) )`,
     )
@@ -53,6 +54,7 @@ export default async function FestasPage() {
     horaFim: r.hora_fim,
     isViagem: r.is_viagem,
     contratante: r.contratante_nome,
+    arquivada: r.arquivada_em !== null,
     aniversariante: r.aniversariante_nome,
     telefone: r.telefone_contato,
     // Só o orçamento em aberto tem prazo; vencido, o card vai para Recuperação.

@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { mudarStatusFesta, excluirFesta } from "@/actions/festas";
+import { mudarStatusFesta, excluirFesta, moverParaVendidos } from "@/actions/festas";
 import { MarcarPerdidoDialog } from "@/components/admin/marcar-perdido";
 import { PARTY_STATUS_LABEL } from "@/types/domain";
 import type { PartyStatus } from "@/types/domain";
@@ -32,10 +32,13 @@ export function FestaStatusControl({
   festaId,
   status,
   cliente,
+  arquivada,
 }: {
   festaId: string;
   status: PartyStatus;
   cliente: string | null;
+  /** Paga que já saiu do kanban para Vendidos. */
+  arquivada: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -50,6 +53,17 @@ export function FestaStatusControl({
       if (res?.error) toast.error(res.error);
       else {
         toast.success(`Status: ${PARTY_STATUS_LABEL[s]}`);
+        router.refresh();
+      }
+    });
+  }
+
+  function arquivar() {
+    startTransition(async () => {
+      const res = await moverParaVendidos(festaId);
+      if (res?.error) toast.error(res.error);
+      else {
+        toast.success("Festa movida para Vendidos.");
         router.refresh();
       }
     });
@@ -114,6 +128,15 @@ export function FestaStatusControl({
             className="bg-amarelo font-semibold text-foreground hover:bg-amarelo/90 sm:col-span-2"
           >
             <Wallet className="size-4" /> Marcar como paga
+          </Button>
+        )}
+        {status === "paga" && !arquivada && (
+          <Button
+            disabled={pending}
+            onClick={arquivar}
+            className="bg-verde font-semibold text-white hover:bg-verde-escuro sm:col-span-2"
+          >
+            <Trophy className="size-4" /> Mover para Vendidos
           </Button>
         )}
         {status === "cancelada" && (

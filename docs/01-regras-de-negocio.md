@@ -184,8 +184,9 @@ Meta de aceite: recusa gera e-mail ao admin em **até 1 min** + notificação no
 ### O que fica no kanban (ADR-0031)
 - Colunas: Orçamento, Recuperação, Fechada, Escalada, Confirmada, **Realizada** e **Paga** —
   as duas últimas são o controle dos pagamentos da semana.
-- **Paga** fica no quadro por 30 dias depois da data da festa; depois sai, e o cliente segue
-  em Vendidos. **Perdida** (`cancelada`) não fica no quadro: vai para Perdidos, e o
+- **Paga** fica no quadro até a gerente clicar **Mover para Vendidos** (menu "⋯" do card ou
+  página da festa) ou, no máximo, 30 dias depois da data da festa (ADR-0032). O cliente
+  aparece em Vendidos desde que a festa é realizada. **Perdida** (`cancelada`) não fica no quadro: vai para Perdidos, e o
   "Recuperar" de lá a devolve em Orçamento.
 - Marcar como **realizada**, **paga** ou **perdido**: pelo menu "⋯" do card ou pelos botões
   do card Status na página da festa. Perdido sempre pede o motivo.

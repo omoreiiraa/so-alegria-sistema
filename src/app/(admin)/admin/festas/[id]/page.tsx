@@ -70,6 +70,7 @@ type Festa = {
   created_at: string;
   orcamento_emitido_em: string | null;
   motivo_perda: MotivoPerda | null;
+  arquivada_em: string | null;
   motivo_perda_obs: string | null;
   orcamento_assinado_path: string | null;
   observacoes: string | null;
@@ -156,7 +157,7 @@ export default async function FestaDetailPage({
     .select(
       `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome, aniversariante_nome,
        aniversariante_idade, qtd_criancas, qtd_recreadores, tema_festa, telefone_contato,
-       valor_festa, created_at, orcamento_emitido_em, motivo_perda, motivo_perda_obs, orcamento_assinado_path, observacoes, observacoes_orcamento,
+       valor_festa, created_at, orcamento_emitido_em, motivo_perda, motivo_perda_obs, arquivada_em, orcamento_assinado_path, observacoes, observacoes_orcamento,
        fechada_por, logradouro,
        numero, bairro, cidade, uf,
        party_types ( nome ), partners ( nome, cidade, uf ),
@@ -324,7 +325,12 @@ export default async function FestaDetailPage({
               <CardTitle className="font-display text-base">Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <FestaStatusControl festaId={id} status={festa.status} cliente={festa.contratante_nome} />
+              <FestaStatusControl
+                festaId={id}
+                status={festa.status}
+                cliente={festa.contratante_nome}
+                arquivada={festa.arquivada_em !== null}
+              />
               {festa.status === "cancelada" && (
                 <p className="mt-3 rounded-md bg-vermelho/10 px-3 py-2 text-sm text-vermelho">
                   Cliente perdido

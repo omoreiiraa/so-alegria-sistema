@@ -120,10 +120,12 @@ export async function mudarStatusFesta(id: string, status: PartyStatus) {
     .from("parties")
     .update(
       status === "orcamento"
-        ? { status, orcamento_emitido_em: new Date().toISOString(), ...SEM_PERDA }
+        ? { status, orcamento_emitido_em: new Date().toISOString(), ...SEM_PERDA, arquivada_em: null }
         : status === "cancelada"
-          ? { status }
-          : { status, ...SEM_PERDA },
+          ? { status, arquivada_em: null }
+          : status === "paga"
+            ? { status, ...SEM_PERDA }
+            : { status, ...SEM_PERDA, arquivada_em: null },
     )
     .eq("id", id);
   if (error) return { error: "Não foi possível mudar o status." };
@@ -160,6 +162,26 @@ export async function marcarPerdido(id: string, motivo: MotivoPerda, obs?: strin
   revalidatePath("/admin/festas");
   revalidatePath(`/admin/festas/${id}`);
   revalidatePath("/admin/perdidos");
+  return { ok: true };
+}
+
+/**
+ * Tira a festa paga do kanban sem esperar os 30 dias (ADR-0032). O status
+ * continua `paga`; o cliente já está em Vendidos por causa dele.
+ */
+export async function moverParaVendidos(id: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("parties")
+    .update({ arquivada_em: new Date().toISOString() })
+    .eq("id", id)
+    .eq("status", "paga")
+    .select("id");
+  if (error) return { error: "Não foi possível mover para Vendidos." };
+  if (!data?.length) return { error: "Só festa paga vai para Vendidos." };
+  revalidatePath("/admin/festas");
+  revalidatePath(`/admin/festas/${id}`);
+  revalidatePath("/admin/vendidos");
   return { ok: true };
 }
 

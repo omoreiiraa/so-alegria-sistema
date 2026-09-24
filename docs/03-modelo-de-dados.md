@@ -187,6 +187,9 @@ edição. RLS: equipe lê; insere só com `autor_id = current_profile_id()`; apa
 (gestão apaga qualquer um). `current_profile_id()` é `security definer` e devolve só o
 perfil de quem chama. Ver ADR-0029.
 
+**`parties.arquivada_em`** — quando a festa paga saiu do kanban para Vendidos. Status
+continua `paga`; sair de `paga` limpa o campo. Ver ADR-0032.
+
 **`parties.orcamento_assinado_path`** — caminho no bucket privado `contratos` do
 orçamento preenchido e devolvido pelo cliente. O contrato (orçamento + folha de dados
 da empresa) é montado a cada download, não guardado. Ver ADR-0019.

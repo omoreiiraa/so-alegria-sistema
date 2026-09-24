@@ -134,6 +134,7 @@ export type Database = {
           motivo_perda: string | null
           motivo_perda_obs: string | null
           perdido_em: string | null
+          arquivada_em: string | null
           orcamento_assinado_path: string | null
           partner_id: string | null
           party_type_id: string | null
@@ -170,6 +171,7 @@ export type Database = {
           motivo_perda?: string | null
           motivo_perda_obs?: string | null
           perdido_em?: string | null
+          arquivada_em?: string | null
           orcamento_assinado_path?: string | null
           partner_id?: string | null
           party_type_id?: string | null
@@ -206,6 +208,7 @@ export type Database = {
           motivo_perda?: string | null
           motivo_perda_obs?: string | null
           perdido_em?: string | null
+          arquivada_em?: string | null
           orcamento_assinado_path?: string | null
           partner_id?: string | null
           party_type_id?: string | null

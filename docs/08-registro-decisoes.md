@@ -558,3 +558,16 @@ desfecho da festa.
    (realizada / paga / perdido) e botões em destaque no card Status da página da festa
    (Marcar como realizada, Marcar como perdido, Marcar como paga, Recuperar).
 3. Arrastar entre colunas continua funcionando como antes.
+
+---
+
+### ADR-0032 — "Mover para Vendidos" tira a festa paga do quadro
+
+**Data:** 2026-09-24 · **Status:** aceita · Complementa a ADR-0031
+
+**Contexto:** o card pago não tinha nenhuma ação; a festa ficava na coluna Paga até 30 dias
+depois da data, e a gerente não conseguia dar o pagamento por encerrado.
+
+**Decisão:** `parties.arquivada_em` (migration 0038), gravado pela action `moverParaVendidos`
+só em festa `paga`. O kanban esconde paga arquivada ou com mais de 30 dias. Qualquer mudança
+de status que saia de `paga` limpa o campo, então voltar a festa ao quadro funciona.
