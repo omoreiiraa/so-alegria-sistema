@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/components/ui/button";
 import { FestasView, type FestaCard } from "@/components/admin/festas-view";
 import type { PartyStatus } from "@/types/domain";
+import { validadeOrcamento } from "@/lib/orcamento-validade";
 
 export const metadata: Metadata = { title: "Festas" };
 
@@ -18,6 +19,10 @@ type Row = {
   hora_fim: string;
   is_viagem: boolean;
   contratante_nome: string | null;
+  aniversariante_nome: string | null;
+  telefone_contato: string | null;
+  created_at: string;
+  orcamento_emitido_em: string | null;
   cidade: string | null;
   uf: string | null;
   party_types: { nome: string } | null;
@@ -32,7 +37,8 @@ export default async function FestasPage() {
   const { data } = await supabase
     .from("parties")
     .select(
-      `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome, cidade, uf,
+      `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome,
+       aniversariante_nome, telefone_contato, created_at, orcamento_emitido_em, cidade, uf,
        party_types ( nome ), partners ( nome ), party_assignments ( status ),
        party_party_types ( party_types ( nome ) )`,
     )
@@ -47,6 +53,13 @@ export default async function FestasPage() {
     horaFim: r.hora_fim,
     isViagem: r.is_viagem,
     contratante: r.contratante_nome,
+    aniversariante: r.aniversariante_nome,
+    telefone: r.telefone_contato,
+    // Só o orçamento em aberto tem prazo; vencido, o card vai para Recuperação.
+    orcamento:
+      r.status === "orcamento"
+        ? validadeOrcamento(r.orcamento_emitido_em, r.created_at)
+        : null,
     tipo: r.party_party_types && r.party_party_types.length > 0
       ? r.party_party_types.map((pt) => pt.party_types?.nome).filter(Boolean).join(" + ")
       : r.party_types?.nome ?? null,
@@ -59,7 +72,7 @@ export default async function FestasPage() {
     <div className="space-y-6">
       <PageHeader
         title="Festas"
-        description="Gerencie as festas por status ou pelo calendário."
+        description="Gerencie as festas por status ou pelo calendário. Busque qualquer festa, inclusive de anos anteriores."
         action={
           <Button
             render={<Link href="/admin/festas/nova" />} nativeButton={false}

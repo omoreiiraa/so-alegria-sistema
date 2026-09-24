@@ -6,9 +6,10 @@ import { gerarConvite } from "@/actions/links";
 import { festaSchema, escalaSchema } from "@/lib/validations/festa";
 import { onlyDigitsCep } from "@/lib/utils/cep";
 import { toE164 } from "@/lib/utils/phone";
-import type { PartyStatus } from "@/types/domain";
+import { MOTIVOS_PERDA, type MotivoPerda, type PartyStatus } from "@/types/domain";
 
 const STATUSES: PartyStatus[] = [
+  "orcamento",
   "fechada",
   "escalada",
   "confirmada",
@@ -113,10 +114,52 @@ export async function atualizarFesta(id: string, input: unknown) {
 export async function mudarStatusFesta(id: string, status: PartyStatus) {
   if (!STATUSES.includes(status)) return { error: "Status inválido" };
   const supabase = await createClient();
-  const { error } = await supabase.from("parties").update({ status }).eq("id", id);
+  // Voltar para "Orçamento" (inclusive vindo da Recuperação) é reenviar o
+  // orçamento ao cliente: a validade de 5 dias recomeça hoje (ADR-0027).
+  const { error } = await supabase
+    .from("parties")
+    .update(
+      status === "orcamento"
+        ? { status, orcamento_emitido_em: new Date().toISOString(), ...SEM_PERDA }
+        : status === "cancelada"
+          ? { status }
+          : { status, ...SEM_PERDA },
+    )
+    .eq("id", id);
   if (error) return { error: "Não foi possível mudar o status." };
   revalidatePath("/admin/festas");
+  revalidatePath("/admin/vendidos");
+  revalidatePath("/admin/perdidos");
   revalidatePath(`/admin/festas/${id}`);
+  return { ok: true };
+}
+
+/** Festa que sai de "cancelada" deixa de ser perdida: o motivo antigo não vale mais. */
+const SEM_PERDA = { motivo_perda: null, motivo_perda_obs: null, perdido_em: null };
+
+/**
+ * Marca o cliente como perdido: a festa vai para `cancelada` com o motivo
+ * (ADR-0028). Serve tanto para o orçamento que não fechou quanto para a festa
+ * fechada da qual o cliente desistiu.
+ */
+export async function marcarPerdido(id: string, motivo: MotivoPerda, obs?: string) {
+  if (!MOTIVOS_PERDA.includes(motivo)) return { error: "Motivo inválido" };
+  const detalhe = obs?.trim().slice(0, 500) || null;
+  if (motivo === "outro" && !detalhe) return { error: "Conte qual foi o motivo." };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("parties")
+    .update({
+      status: "cancelada",
+      motivo_perda: motivo,
+      motivo_perda_obs: detalhe,
+      perdido_em: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) return { error: "Não foi possível marcar como perdido." };
+  revalidatePath("/admin/festas");
+  revalidatePath(`/admin/festas/${id}`);
+  revalidatePath("/admin/perdidos");
   return { ok: true };
 }
 

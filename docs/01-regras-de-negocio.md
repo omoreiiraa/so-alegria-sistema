@@ -159,8 +159,39 @@ Meta de aceite: recusa gera e-mail ao admin em **até 1 min** + notificação no
 ## 9. Estados
 
 ### Festa (`party_status`)
-`fechada → escalada → confirmada → realizada → paga` (+ `cancelada`).
-v1 pode iniciar o kanban com Fechada/Escalada/Confirmada/Realizada; colunas configuráveis.
+`orcamento → fechada → escalada → confirmada → realizada → paga` (+ `cancelada`).
+
+### Validade do orçamento (ADR-0027)
+- O orçamento vale **5 dias corridos** a partir da emissão (`parties.orcamento_emitido_em`;
+  vazio = `created_at`). Emitido no dia 10, vale até o dia 15 inclusive.
+- O PDF traz "Emitido em" / "Válido até" e uma observação dizendo que, após o prazo, perde a validade.
+- Gerar o PDF de um orçamento **ainda válido** reimprime o mesmo prazo; de um **vencido** (ou
+  que nunca saiu) grava emissão nova.
+- **Recuperação:** festa em `orcamento` com a validade vencida. Não é status do banco — é
+  uma coluna do kanban calculada. Sai dela ao ir para Fechada (cliente topou), ao voltar para
+  Orçamento (renova os 5 dias) ou ao ser cancelada (cliente desistiu).
+
+### Vendidos e Perdidos (ADR-0028)
+- **Vendidos** (`/admin/vendidos`): clientes com festa `realizada` ou `paga`, agrupados por
+  telefone (sem telefone, pelo nome). Ordenados pela próxima vez que a data da última festa
+  se repete — a deixa do follow-up do ano seguinte —, com mensagem pronta no WhatsApp.
+- **Perdidos** (`/admin/perdidos`): festas `cancelada` (com `motivo_perda`) + orçamentos
+  vencidos sem resposta. Motivos: não respondeu, achou caro, fechou com outra empresa, data
+  indisponível, desistiu, outro (exige detalhe).
+- "Cancelar festa" pede o motivo. **Recuperar** devolve a festa ao kanban, em Orçamento
+  (renova os 5 dias e limpa o motivo); se a data já passou, abre a edição para escolher outra.
+
+### O que fica no kanban (ADR-0031)
+- Colunas: Orçamento, Recuperação, Fechada, Escalada, Confirmada, **Realizada** e **Paga** —
+  as duas últimas são o controle dos pagamentos da semana.
+- **Paga** fica no quadro por 30 dias depois da data da festa; depois sai, e o cliente segue
+  em Vendidos. **Perdida** (`cancelada`) não fica no quadro: vai para Perdidos, e o
+  "Recuperar" de lá a devolve em Orçamento.
+- Marcar como **realizada**, **paga** ou **perdido**: pelo menu "⋯" do card ou pelos botões
+  do card Status na página da festa. Perdido sempre pede o motivo.
+- A busca do kanban avisa quantas festas achou fora do quadro (pagas antigas em Vendidos,
+  perdidas em Perdidos), com link que abre a página já filtrada. O calendário mostra todas as
+  festas, menos as perdidas.
 
 ### Assignment (`assignment_status`)
 `pendente → confirmada | recusada | cancelada`.

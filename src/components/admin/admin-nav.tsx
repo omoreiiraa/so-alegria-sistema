@@ -11,6 +11,8 @@ import {
   Building2,
   Package,
   Printer,
+  Trophy,
+  UserX,
   FileText,
   KeyRound,
 } from "lucide-react";
@@ -26,6 +28,9 @@ import { eGestao } from "@/types/domain";
 export const adminNavItems = [
   { href: "/admin", label: "Início", icon: LayoutDashboard, exact: true, nivel: "equipe" },
   { href: "/admin/festas", label: "Festas", icon: PartyPopper, nivel: "equipe" },
+  // Subitens de Festas: os clientes depois do funil (ADR-0028).
+  { href: "/admin/vendidos", label: "Vendidos", icon: Trophy, nivel: "equipe", sub: true },
+  { href: "/admin/perdidos", label: "Perdidos", icon: UserX, nivel: "equipe", sub: true },
   { href: "/admin/ordens-servico", label: "Ordem de Serviço", icon: FileText, nivel: "gestao" },
   { href: "/admin/folha-dia", label: "Folha do Dia", icon: Printer, nivel: "equipe" },
   { href: "/admin/colaboradores", label: "Colaboradores", icon: Users, nivel: "equipe" },
@@ -63,12 +68,13 @@ export function AdminNav({
             onClick={onNavigate}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "sub" in item && item.sub && "ml-5 py-1.5 text-[13px]",
               active
                 ? "bg-sidebar-accent text-sidebar-accent-foreground"
                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
             )}
           >
-            <Icon className="size-5 shrink-0" />
+            <Icon className={cn("shrink-0", "sub" in item && item.sub ? "size-4" : "size-5")} />
             {item.label}
           </Link>
         );

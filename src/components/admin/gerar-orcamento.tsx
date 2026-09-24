@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FileText, Loader2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ export function GerarOrcamento({
   telefone: string | null;
   contratante: string | null;
 }) {
+  const router = useRouter();
   const [gerando, setGerando] = useState(false);
   const [gerado, setGerado] = useState(false);
 
@@ -48,6 +50,8 @@ export function GerarOrcamento({
       URL.revokeObjectURL(url);
 
       setGerado(true);
+      // Gerar pode ter gravado uma emissão nova (validade de 5 dias).
+      router.refresh();
       toast.success("Orçamento gerado! O PDF foi baixado.");
     } catch {
       toast.error("Não foi possível gerar o orçamento.");

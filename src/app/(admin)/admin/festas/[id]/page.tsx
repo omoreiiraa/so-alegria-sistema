@@ -13,6 +13,7 @@ import {
   UserCheck,
   Phone,
   PartyPopper,
+  MessageCircle,
 } from "lucide-react";
 import { requireEquipe } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -27,11 +28,15 @@ import { ConviteLink } from "@/components/admin/convite-link";
 import { MateriaisFesta, type Material } from "@/components/admin/materiais-festa";
 import { GerarOrcamento } from "@/components/admin/gerar-orcamento";
 import { ContratoFesta } from "@/components/admin/contrato-festa";
+import { FollowUps, type FollowUp } from "@/components/admin/follow-ups";
 import { formatPhoneNational } from "@/lib/utils/phone";
-import { formatDateLong, formatTime } from "@/lib/utils/date";
+import { formatDate, formatDateLong, formatTime } from "@/lib/utils/date";
 import { formatBRL } from "@/lib/utils/money";
+import { validadeOrcamento } from "@/lib/orcamento-validade";
 import {
   CARGO_LABEL,
+  eGestao,
+  MOTIVO_PERDA_LABEL,
   PARTY_STATUS_LABEL,
   PRESENCE_MODE_LABEL,
   VEHICLE_TYPE_LABEL,
@@ -39,6 +44,7 @@ import {
 import type {
   AssignmentStatus,
   CargoType,
+  MotivoPerda,
   PartyStatus,
   PresenceMode,
   VehicleType,
@@ -61,6 +67,10 @@ type Festa = {
   tema_festa: string | null;
   telefone_contato: string | null;
   valor_festa: number | null;
+  created_at: string;
+  orcamento_emitido_em: string | null;
+  motivo_perda: MotivoPerda | null;
+  motivo_perda_obs: string | null;
   orcamento_assinado_path: string | null;
   observacoes: string | null;
   observacoes_orcamento: string | null;
@@ -137,7 +147,7 @@ export default async function FestaDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireEquipe();
+  const session = await requireEquipe();
   const { id } = await params;
   const supabase = await createClient();
 
@@ -146,7 +156,7 @@ export default async function FestaDetailPage({
     .select(
       `id, status, data, hora_inicio, hora_fim, is_viagem, contratante_nome, aniversariante_nome,
        aniversariante_idade, qtd_criancas, qtd_recreadores, tema_festa, telefone_contato,
-       valor_festa, orcamento_assinado_path, observacoes, observacoes_orcamento,
+       valor_festa, created_at, orcamento_emitido_em, motivo_perda, motivo_perda_obs, orcamento_assinado_path, observacoes, observacoes_orcamento,
        fechada_por, logradouro,
        numero, bairro, cidade, uf,
        party_types ( nome ), partners ( nome, cidade, uf ),
@@ -166,6 +176,7 @@ export default async function FestaDetailPage({
     { data: mData },
     { data: iData },
     { data: preview },
+    { data: fData },
   ] = await Promise.all([
     supabase
       .from("party_assignments")
@@ -197,7 +208,30 @@ export default async function FestaDetailPage({
     // Quanto rende cada função nesta festa. Quem calcula é o Postgres: a tela
     // de escalação só exibe o número que seria gravado.
     supabase.rpc("calc_cache_preview", { p_party_id: id }),
+    supabase
+      .from("party_follow_ups")
+      .select("id, texto, created_at, autor_id, profiles ( nome_completo )")
+      .eq("party_id", id)
+      .order("created_at", { ascending: false }),
   ]);
+
+  // A tela só esconde a lixeira; quem barra de verdade é a policy follow_ups_delete.
+  const ehGestao = eGestao(session.profile.role);
+  const followUps: FollowUp[] = (
+    (fData ?? []) as unknown as {
+      id: string;
+      texto: string;
+      created_at: string;
+      autor_id: string | null;
+      profiles: { nome_completo: string | null } | null;
+    }[]
+  ).map((f) => ({
+    id: f.id,
+    texto: f.texto,
+    criadoEm: f.created_at,
+    autor: f.profiles?.nome_completo ?? "Escritório",
+    podeApagar: ehGestao || f.autor_id === session.profile.id,
+  }));
 
   const sugestoes = (preview ?? {}) as SugestoesCache;
 
@@ -243,6 +277,10 @@ export default async function FestaDetailPage({
     .map((v) => ({ id: v.id, apelido: v.apelido, placa: v.placa }));
 
   const confirmados = assignments.filter((a) => a.status === "confirmada").length;
+  const validade =
+    festa.status === "orcamento"
+      ? validadeOrcamento(festa.orcamento_emitido_em, festa.created_at)
+      : null;
 
   return (
     <div className="space-y-6">
@@ -268,7 +306,11 @@ export default async function FestaDetailPage({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="secondary">{PARTY_STATUS_LABEL[festa.status]}</Badge>
+          {validade?.vencido ? (
+            <Badge className="bg-vermelho/15 text-vermelho">Recuperação</Badge>
+          ) : (
+            <Badge variant="secondary">{PARTY_STATUS_LABEL[festa.status]}</Badge>
+          )}
           <Button render={<Link href={`/admin/festas/${id}/editar`} />} nativeButton={false} variant="outline" size="sm">
             <Pencil className="size-4" /> Editar
           </Button>
@@ -282,7 +324,21 @@ export default async function FestaDetailPage({
               <CardTitle className="font-display text-base">Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <FestaStatusControl festaId={id} status={festa.status} />
+              <FestaStatusControl festaId={id} status={festa.status} cliente={festa.contratante_nome} />
+              {festa.status === "cancelada" && (
+                <p className="mt-3 rounded-md bg-vermelho/10 px-3 py-2 text-sm text-vermelho">
+                  Cliente perdido
+                  {festa.motivo_perda && ` · ${MOTIVO_PERDA_LABEL[festa.motivo_perda]}`}
+                  {festa.motivo_perda_obs && (
+                    <span className="mt-1 block whitespace-pre-line text-muted-foreground">
+                      {festa.motivo_perda_obs}
+                    </span>
+                  )}
+                  <Link href="/admin/perdidos" className="mt-1 block text-xs font-medium underline">
+                    Ver em Perdidos
+                  </Link>
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -356,6 +412,17 @@ export default async function FestaDetailPage({
 
           <Card>
             <CardHeader>
+              <CardTitle className="flex items-center gap-2 font-display text-base">
+                <MessageCircle className="size-4 text-muted-foreground" /> Follow-ups
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FollowUps festaId={id} itens={followUps} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle className="font-display text-base">
                 Materiais {festaRealizada && "· conferência de devolução"}
               </CardTitle>
@@ -381,6 +448,23 @@ export default async function FestaDetailPage({
               <CardTitle className="font-display text-base">Orçamento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {validade && (
+                <p
+                  className={
+                    validade.vencido
+                      ? "rounded-md bg-vermelho/10 px-3 py-2 text-sm text-vermelho"
+                      : "rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground"
+                  }
+                >
+                  {validade.vencido
+                    ? `Venceu em ${formatDate(validade.validoAte)} sem resposta — está em Recuperação. Gerar o PDF de novo emite um orçamento com mais 5 dias.`
+                    : `Emitido em ${formatDate(validade.emitidoEm)} · válido até ${formatDate(validade.validoAte)}${
+                        validade.diasRestantes === 0
+                          ? " (vence hoje)"
+                          : ` (${validade.diasRestantes} dia${validade.diasRestantes > 1 ? "s" : ""})`
+                      }.`}
+                </p>
+              )}
               {festa.valor_festa != null && (
                 <div className="flex items-baseline justify-between rounded-lg border border-verde/40 bg-verde/5 px-4 py-3">
                   <span className="text-sm font-medium text-muted-foreground">

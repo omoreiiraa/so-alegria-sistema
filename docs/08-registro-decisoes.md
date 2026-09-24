@@ -441,3 +441,120 @@ pode ser escalado passou a ser "aprovado e ativo", não mais "cargo <> pendente"
 ninguém aprovado depois da 0034 apareceria na lista de escalação. Na escalação, a função
 deixou de vir pré-selecionada: é a decisão de quanto a pessoa ganha naquela festa, então o
 botão de enviar convite fica travado até o admin escolher uma das quatro.
+
+---
+
+### ADR-0027 — Orçamento vale 5 dias; vencido vai para Recuperação
+
+**Data:** 2026-09-24 · **Status:** aceita
+
+**Contexto:** o escritório manda o orçamento pelo WhatsApp e muitos clientes somem. Sem
+prazo no documento, o cliente volta semanas depois cobrando o valor antigo, e os orçamentos
+parados se misturavam com os que ainda estavam em negociação.
+
+**Decisão:**
+1. O orçamento tem validade de **5 dias corridos** a partir da emissão, impressa no PDF
+   ("Emitido em" / "Válido até" + observação). Nova coluna `parties.orcamento_emitido_em`
+   (migration 0035); vazia, conta de `created_at`.
+2. A emissão é gravada ao gerar o PDF, **só** se não havia orçamento válido — reimprimir
+   não estica o prazo sem querer. Devolver a festa para "Orçamento" (arrastando no kanban ou
+   pelo controle de status) renova a emissão para hoje.
+3. **Recuperação** é uma coluna calculada do kanban, não um valor de `party_status`: festa em
+   `orcamento` com a validade vencida. A coluna não aceita card arrastado.
+4. Festas pagas/canceladas há mais de 30 dias saem do kanban e ficam no histórico,
+   alcançável pela busca e pelos filtros. Busca e filtros ficam na URL, para sobreviver a abrir
+   uma festa e voltar.
+
+**Alternativas:** (a) status `recuperacao` no enum: exigiria um job diário para mover as
+festas na virada do prazo e deixaria o status mentir entre uma execução e outra; calculado na
+leitura, ele está sempre certo. (b) validade contando sempre da última geração do PDF: uma
+simples reimpressão estenderia o prazo sem a gerente perceber.
+
+**Consequência:** o prazo é conta de data, não de dinheiro — fica em
+`src/lib/orcamento-validade.ts` (com `America/Sao_Paulo`), sem violar a regra de cálculo no
+banco. O contrato reaproveita o PDF do orçamento **sem** a faixa de validade.
+
+---
+
+### ADR-0028 — Vendidos e Perdidos: o cliente depois do funil
+
+**Data:** 2026-09-24 · **Status:** aceita
+
+**Contexto:** a gerente quer voltar a falar com quem já fez festa (no ano seguinte, perto
+da mesma data) e com quem não fechou. O kanban é operacional e esconde as festas antigas
+(ADR-0027); faltava um lugar para o cliente.
+
+**Decisão:**
+1. Duas páginas no menu, abaixo de Festas. **Não há tabela de clientes**: as duas leem
+   `parties`. Vendidos agrupa por telefone (dígitos) ou, sem ele, pelo nome sem acento.
+2. **Vendidos** = `realizada` ou `paga`, ordenado pela próxima repetição da data da última
+   festa (29/02 cai em 28/02), com a idade que o aniversariante vai fazer.
+3. **Perdidos** = `cancelada` + orçamento vencido sem resposta. O motivo fica em
+   `parties.motivo_perda` (+ `motivo_perda_obs`, `perdido_em`; migration 0036), gravado pela
+   action `marcarPerdido`. O vencido aparece como "Orçamento vencido" até alguém marcá-lo.
+4. `mudarStatusFesta` limpa o motivo sempre que a festa sai de `cancelada`.
+
+**Alternativas:** tabela `clientes` com vínculo em `parties` — organizaria melhor, mas exige
+migrar e deduplicar o histórico e mudar o cadastro de festa. Fica para quando precisar de
+dados do cliente que não são da festa (ex.: histórico de contatos de follow-up).
+
+**Consequência:** o mesmo cliente escrito com telefones diferentes vira dois cartões em
+Vendidos. Não há registro de "já chamei no WhatsApp" — próximo passo natural se o volume
+crescer.
+
+---
+
+### ADR-0029 — Follow-ups da festa
+
+**Data:** 2026-09-24 · **Status:** aceita
+
+**Contexto:** o escritório conversa com o cliente pelo WhatsApp e não tinha onde anotar o
+que foi combinado ("cobrei, manda amanhã"). O campo `observacoes` é para a equipe da festa,
+não um histórico, e sobrescrever texto perde quem disse o quê e quando.
+
+**Decisão:** tabela `party_follow_ups` (migration 0037), uma linha por anotação, com autor
+e hora, exibida na página da festa logo abaixo de Informações, da mais nova para a mais
+antiga. Sem edição: errou, apaga e escreve de novo. A policy de insert exige
+`autor_id = current_profile_id()`, então ninguém registra em nome de outra pessoa; apagar é
+do próprio autor ou da gestão.
+
+**Consequência:** os follow-ups ficam presos à festa. Vendidos/Perdidos ainda não mostram o
+último contato — próximo passo natural (ver ADR-0028).
+
+---
+
+### ADR-0030 — O kanban é só o que está em andamento
+
+**Data:** 2026-09-24 · **Status:** substituída pela ADR-0031 · **Substitui** o item 4 da ADR-0027
+
+**Contexto:** com o tempo as colunas Realizada e Paga (e as canceladas) enchiam o quadro. A
+ADR-0027 escondia só as pagas/canceladas com mais de 30 dias; a gerente preferiu que o quadro
+mostre apenas a operação viva, já que Vendidos e Perdidos (ADR-0028) guardam o resto.
+
+**Decisão:** colunas Orçamento, Recuperação, Fechada, Escalada e Confirmada. Realizada, paga
+e cancelada saem do kanban. No lugar das colunas, duas áreas de soltar no fim do quadro:
+**Realizada** (muda o status; o cliente aparece em Vendidos) e **Perdido** (abre o diálogo de
+motivo). O filtro "Mostrar histórico" deixou de existir. Em Perdidos, **Recuperar** está
+sempre disponível e devolve a festa ao quadro em Orçamento; se a data já passou, abre a
+edição da festa.
+
+**Consequência:** achar uma festa antiga é por Vendidos/Perdidos (ou pelo calendário). A busca
+do kanban aponta para lá com `?q=`. Marcar Paga passa a ser só pela página da festa.
+
+---
+
+### ADR-0031 — Realizada e Paga voltam ao quadro; fim do funil pelo card
+
+**Data:** 2026-09-24 · **Status:** aceita · **Substitui** a ADR-0030
+
+**Contexto:** tirar Realizada e Paga do kanban (ADR-0030) quebrou o controle dos pagamentos
+da semana, e as áreas de soltar no fim do quadro não eram como a gerente queria marcar o
+desfecho da festa.
+
+**Decisão:**
+1. Colunas Realizada e Paga de volta. Paga some do quadro 30 dias depois da data da festa
+   (o cliente continua em Vendidos); cancelada continua fora (fica em Perdidos).
+2. Sem áreas de soltar. O desfecho se marca no card: menu "⋯" no card do kanban
+   (realizada / paga / perdido) e botões em destaque no card Status da página da festa
+   (Marcar como realizada, Marcar como perdido, Marcar como paga, Recuperar).
+3. Arrastar entre colunas continua funcionando como antes.

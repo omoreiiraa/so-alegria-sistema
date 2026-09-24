@@ -130,6 +130,10 @@ export type Database = {
           numero: string | null
           observacoes: string | null
           observacoes_orcamento: string | null
+          orcamento_emitido_em: string | null
+          motivo_perda: string | null
+          motivo_perda_obs: string | null
+          perdido_em: string | null
           orcamento_assinado_path: string | null
           partner_id: string | null
           party_type_id: string | null
@@ -162,6 +166,10 @@ export type Database = {
           numero?: string | null
           observacoes?: string | null
           observacoes_orcamento?: string | null
+          orcamento_emitido_em?: string | null
+          motivo_perda?: string | null
+          motivo_perda_obs?: string | null
+          perdido_em?: string | null
           orcamento_assinado_path?: string | null
           partner_id?: string | null
           party_type_id?: string | null
@@ -194,6 +202,10 @@ export type Database = {
           numero?: string | null
           observacoes?: string | null
           observacoes_orcamento?: string | null
+          orcamento_emitido_em?: string | null
+          motivo_perda?: string | null
+          motivo_perda_obs?: string | null
+          perdido_em?: string | null
           orcamento_assinado_path?: string | null
           partner_id?: string | null
           party_type_id?: string | null
@@ -349,6 +361,45 @@ export type Database = {
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_follow_ups: {
+        Row: {
+          autor_id: string | null
+          created_at: string
+          id: string
+          party_id: string
+          texto: string
+        }
+        Insert: {
+          autor_id?: string | null
+          created_at?: string
+          id?: string
+          party_id: string
+          texto: string
+        }
+        Update: {
+          autor_id?: string | null
+          created_at?: string
+          id?: string
+          party_id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_follow_ups_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_follow_ups_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
             referencedColumns: ["id"]
           },
         ]
@@ -837,6 +888,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_profile_id: { Args: never; Returns: string }
       approve_user: {
         Args: { p_profile: string }
         Returns: undefined

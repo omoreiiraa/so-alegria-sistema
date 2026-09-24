@@ -153,6 +153,30 @@ export const PARTY_STATUS_LABEL: Record<PartyStatus, string> = {
   cancelada: "Cancelada",
 };
 
+/**
+ * Por que o cliente não fechou ou desistiu (`parties.motivo_perda`, ADR-0028).
+ * A lista espelha a constraint `parties_motivo_perda_check` do banco.
+ */
+export const MOTIVOS_PERDA = [
+  "sem_resposta",
+  "preco",
+  "concorrente",
+  "data_indisponivel",
+  "desistiu",
+  "outro",
+] as const;
+
+export type MotivoPerda = (typeof MOTIVOS_PERDA)[number];
+
+export const MOTIVO_PERDA_LABEL: Record<MotivoPerda, string> = {
+  sem_resposta: "Não respondeu",
+  preco: "Achou caro",
+  concorrente: "Fechou com outra empresa",
+  data_indisponivel: "Data indisponível",
+  desistiu: "Desistiu da festa",
+  outro: "Outro motivo",
+};
+
 export const SERVICE_ORDER_STATUS_LABEL: Record<ServiceOrderStatus, string> = {
   rascunho: "Rascunho",
   enviada: "Enviada",

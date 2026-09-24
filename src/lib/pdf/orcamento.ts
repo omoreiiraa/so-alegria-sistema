@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 import { embutirLogo } from "./logo";
 import { formatBRL } from "@/lib/utils/money";
+import { VALIDADE_ORCAMENTO_DIAS } from "@/lib/orcamento-validade";
 import { formatDate, formatTime } from "@/lib/utils/date";
 import {
   A4,
@@ -40,6 +41,11 @@ export type OrcamentoData = {
   /** Observação escrita pelo escritório para o cliente ler. */
   observacoes: string | null;
   materiais: { nome: string; quantidade: number }[];
+  /**
+   * Emissão e validade (YYYY-MM-DD). Só o orçamento enviado ao cliente leva:
+   * o contrato reaproveita este PDF e ali o prazo já não faz sentido.
+   */
+  validade?: { emitidoEm: string; validoAte: string };
 };
 
 export async function gerarOrcamentoPDF(d: OrcamentoData): Promise<Uint8Array> {
@@ -145,6 +151,24 @@ export async function gerarOrcamentoPDF(d: OrcamentoData): Promise<Uint8Array> {
   });
 
   y -= 34;
+
+  // ── Emissão e validade, logo abaixo da faixa ─────────────────────────────
+  if (d.validade) {
+    y += 8;
+    const emissao = sanitize(`Emitido em ${formatDate(d.validade.emitidoEm)}`);
+    page.drawText(emissao, { x: MARGEM, y, size: 9, font: regular, color: CINZA });
+    const validade = sanitize(
+      `Válido até ${formatDate(d.validade.validoAte)} (${VALIDADE_ORCAMENTO_DIAS} dias)`,
+    );
+    page.drawText(validade, {
+      x: A4.width - MARGEM - bold.widthOfTextAtSize(validade, 9),
+      y,
+      size: 9,
+      font: bold,
+      color: LARANJA,
+    });
+    y -= 22;
+  }
 
   // ── Blocos de informação ─────────────────────────────────────────────────
   const secao = (nome: string) => {
@@ -350,6 +374,14 @@ export async function gerarOrcamentoPDF(d: OrcamentoData): Promise<Uint8Array> {
   for (const condicao of CONDICOES_DE_CONTRATACAO) paragrafo(condicao);
 
   secao("OBSERVAÇÕES IMPORTANTES");
+  if (d.validade) {
+    topico(
+      `Este orçamento tem validade de ${VALIDADE_ORCAMENTO_DIAS} dias a partir da ` +
+        `emissão, até ${formatDate(d.validade.validoAte)}. Após esse período ele ` +
+        "perde a validade, e valores e disponibilidade da data precisam ser " +
+        "confirmados novamente.",
+    );
+  }
   for (const observacao of OBSERVACOES_IMPORTANTES) topico(observacao);
   y -= 6;
 

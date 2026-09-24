@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { RotateCcw, Trash2, Trophy, Wallet, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { mudarStatusFesta, excluirFesta } from "@/actions/festas";
+import { MarcarPerdidoDialog } from "@/components/admin/marcar-perdido";
 import { PARTY_STATUS_LABEL } from "@/types/domain";
 import type { PartyStatus } from "@/types/domain";
 
@@ -30,13 +31,17 @@ const PIPELINE: PartyStatus[] = [
 export function FestaStatusControl({
   festaId,
   status,
+  cliente,
 }: {
   festaId: string;
   status: PartyStatus;
+  cliente: string | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [perdido, setPerdido] = useState(false);
+  const emAndamento = !["realizada", "paga", "cancelada"].includes(status);
 
   function mudar(s: PartyStatus) {
     if (s === status) return;
@@ -82,17 +87,47 @@ export function FestaStatusControl({
           </button>
         ))}
       </div>
-      <div className="flex items-center gap-3">
-        {status !== "cancelada" && (
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => mudar("cancelada")}
-            className="text-xs font-medium text-muted-foreground hover:text-vermelho"
-          >
-            Cancelar festa
-          </button>
+      {/* Ações do fim do funil, em destaque: é aqui que a gerente fecha a festa. */}
+      <div className="grid gap-2 sm:grid-cols-2">
+        {emAndamento && (
+          <>
+            <Button
+              disabled={pending}
+              onClick={() => mudar("realizada")}
+              className="bg-verde font-semibold text-white hover:bg-verde-escuro"
+            >
+              <Trophy className="size-4" /> Marcar como realizada
+            </Button>
+            <Button
+              disabled={pending}
+              onClick={() => setPerdido(true)}
+              className="bg-vermelho font-semibold text-white hover:bg-vermelho/90"
+            >
+              <XCircle className="size-4" /> Marcar como perdido
+            </Button>
+          </>
         )}
+        {status === "realizada" && (
+          <Button
+            disabled={pending}
+            onClick={() => mudar("paga")}
+            className="bg-amarelo font-semibold text-foreground hover:bg-amarelo/90 sm:col-span-2"
+          >
+            <Wallet className="size-4" /> Marcar como paga
+          </Button>
+        )}
+        {status === "cancelada" && (
+          <Button
+            disabled={pending}
+            onClick={() => mudar("orcamento")}
+            variant="outline"
+            className="font-semibold sm:col-span-2"
+          >
+            <RotateCcw className="size-4" /> Recuperar (volta para Orçamento)
+          </Button>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
         <button
           type="button"
           disabled={pending}
@@ -102,6 +137,14 @@ export function FestaStatusControl({
           <Trash2 className="size-3" /> Excluir
         </button>
       </div>
+
+      <MarcarPerdidoDialog
+        festaId={festaId}
+        cliente={cliente}
+        motivoInicial={status === "orcamento" ? "sem_resposta" : undefined}
+        open={perdido}
+        onOpenChange={setPerdido}
+      />
 
       <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <DialogContent>

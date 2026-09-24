@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { OrcamentoData } from "./orcamento";
 import type { DadosEmpresaData } from "./dados-empresa";
 import { formatPhoneNational } from "@/lib/utils/phone";
+import type { PartyStatus } from "@/types/domain";
 
 /**
  * Carrega uma festa e monta o que os dois PDFs precisam. Vive num módulo só
@@ -14,6 +15,9 @@ import { formatPhoneNational } from "@/lib/utils/phone";
 
 type PartyRow = {
   id: string;
+  status: PartyStatus;
+  created_at: string;
+  orcamento_emitido_em: string | null;
   data: string;
   hora_inicio: string;
   hora_fim: string;
@@ -99,7 +103,7 @@ export async function carregarDadosDaFesta(
     supabase
       .from("parties")
       .select(
-        `id, data, hora_inicio, hora_fim, contratante_nome, aniversariante_nome,
+        `id, status, created_at, orcamento_emitido_em, data, hora_inicio, hora_fim, contratante_nome, aniversariante_nome,
          aniversariante_idade, qtd_criancas, qtd_recreadores, tema_festa,
          telefone_contato, valor_festa, observacoes_orcamento, logradouro, numero,
          complemento, bairro, cidade, uf, orcamento_assinado_path,

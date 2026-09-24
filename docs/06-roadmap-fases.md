@@ -32,6 +32,10 @@
 ## Fase 2 — Admin core
 - [x] CRUD de festas (form completo: tipo, local parceiro/CEP, veículos, viagem)
 - [x] Kanban (colunas de status) + Calendário (mês) com toggle
+- [x] Validade de 5 dias no orçamento + coluna Recuperação (ADR-0027)
+- [x] Páginas Vendidos (follow-up anual) e Perdidos (recuperação, com motivo) (ADR-0028)
+- [x] Follow-ups por festa (anotação com autor e hora) (ADR-0029)
+- [x] Busca por cliente/aniversariante/telefone + filtros (ano, mês, período, tipo, viagem, histórico)
 - [x] CRUD colaboradores (lista, pendentes x equipe)
 - [x] Aprovar cadastro, alterar cargo, definir nome de tio, desativar/reativar
 - [x] Escalar colaboradores (busca, alerta de outra festa no dia)

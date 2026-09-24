@@ -172,6 +172,21 @@ contrário do CPF: o CPF é a identidade da pessoa, o CNPJ é a empresa pela qua
 fatura, e duas pessoas podem faturar pela mesma. Constraint de formato no banco
 (`^[0-9]{14}$`); dígitos verificadores no Zod.
 
+**`parties.orcamento_emitido_em`** — quando o orçamento foi emitido ao cliente
+(`timestamptz`). Vale 5 dias; vazio conta de `created_at`. Gravado ao gerar o PDF (se não
+havia um válido) e ao devolver a festa para "Orçamento". Ver ADR-0027.
+
+**`parties.motivo_perda` / `motivo_perda_obs` / `perdido_em`** — por que o cliente não
+fechou ou desistiu, gravado ao marcar a festa como perdida (`cancelada`). Constraint
+`parties_motivo_perda_check` com a lista de `MOTIVOS_PERDA`. Limpo quando a festa sai de
+`cancelada`. Ver ADR-0028.
+
+**`party_follow_ups`** — anotações de contato com o cliente, por festa: `party_id`
+(cascade), `autor_id` (→ `profiles`, set null), `texto` (1–2000), `created_at`. Sem
+edição. RLS: equipe lê; insere só com `autor_id = current_profile_id()`; apaga o próprio
+(gestão apaga qualquer um). `current_profile_id()` é `security definer` e devolve só o
+perfil de quem chama. Ver ADR-0029.
+
 **`parties.orcamento_assinado_path`** — caminho no bucket privado `contratos` do
 orçamento preenchido e devolvido pelo cliente. O contrato (orçamento + folha de dados
 da empresa) é montado a cada download, não guardado. Ver ADR-0019.
